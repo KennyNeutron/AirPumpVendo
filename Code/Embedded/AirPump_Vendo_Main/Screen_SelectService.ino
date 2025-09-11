@@ -1,7 +1,12 @@
 bool Screen_SelectService_INIT = false;
 
+static void GoButton_TireCodeAndInflation_Clicked(lv_event_t* e) {
+    lv_obj_del(SCR_CurrentScreen); // Delete the current screen
+    Screen_TireCodeAndInflation_POST();
+    Screen_TireCodeAndInflation();
+}
+
 void Screen_SelectService_PRE() {
-  // To be implemented
   SCR_SelectService = lv_obj_create(NULL);
   lv_scr_load(SCR_SelectService);
 
@@ -64,11 +69,11 @@ void Screen_SelectService_PRE() {
   lv_obj_set_style_border_color(GoButton_DOTCodeSafetyCheck, lv_color_white(), 0);
 
   lv_obj_t* Label_GoButton_DOTCodeSafetyCheck = lv_label_create(GoButton_DOTCodeSafetyCheck);
-  lv_label_set_text(Label_GoButton_DOTCodeSafetyCheck, "ENTER");
+  lv_label_set_text(Label_GoButton_DOTCodeSafetyCheck, "GO");
   lv_obj_center(Label_GoButton_DOTCodeSafetyCheck);
   lv_obj_set_style_text_color(Label_GoButton_DOTCodeSafetyCheck, lv_color_black(), 0);
   lv_obj_set_style_text_font(Label_GoButton_DOTCodeSafetyCheck, &lv_font_montserrat_16, 0);
-
+  lv_obj_add_event_cb(GoButton_TireCodeAndInflation, GoButton_TireCodeAndInflation_Clicked, LV_EVENT_CLICKED, NULL); // Add event callback
 }
 
 void Screen_SelectService() {

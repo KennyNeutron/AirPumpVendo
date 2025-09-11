@@ -98,6 +98,7 @@ uint16_t CurrentScreenID = 0x0000;
 lv_obj_t* SCR_CurrentScreen;
 static lv_obj_t* SCR_MainMenu;
 static lv_obj_t* SCR_SelectService;
+static lv_obj_t* SCR_TireCodeAndInflation;
 
 void setup() {
   String LVGL_Arduino = String("LVGL Library Version: ") + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
