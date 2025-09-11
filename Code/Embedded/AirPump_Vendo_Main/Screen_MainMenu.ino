@@ -28,14 +28,14 @@ void Screen_MainMenu_PRE() {
   lv_obj_t* Screen_Description = create_label(SCR_MainMenu, "Your complete tire safety and maintenance solution", &lv_font_montserrat_12, lv_color_white());
   lv_obj_align(Screen_Description, LV_ALIGN_TOP_MID, 0, 90);
 
-  lv_obj_t* icon_TireCode_Label = create_label(SCR_MainMenu, "w", &font_Font90Icon_48_1bpp, lv_color_hex(0x0099FF));
-  lv_obj_align(icon_TireCode_Label, LV_ALIGN_TOP_MID, -70, 0);
+  lv_obj_t* Icon_TireCode = create_label(SCR_MainMenu, LV_SYMBOL_SETTINGS, &lv_font_montserrat_48, lv_color_hex(0x0099FF));
+  lv_obj_align(Icon_TireCode, LV_ALIGN_TOP_MID, -70, 0);
 
-  lv_obj_t* icon_DOTCheck_Label = create_label(SCR_MainMenu, "N", &font_Font90Icon_48_1bpp, lv_color_hex(0x00FF00));
-  lv_obj_align(icon_DOTCheck_Label, LV_ALIGN_TOP_MID, 0, 0);
+  lv_obj_t* Icon_DOTCheck = create_label(SCR_MainMenu, LV_SYMBOL_OK, &lv_font_montserrat_48, lv_color_hex(0x00FF00));
+  lv_obj_align(Icon_DOTCheck, LV_ALIGN_TOP_MID, 0, 0);
 
-  lv_obj_t* icon_TireInflation_Label = create_label(SCR_MainMenu, "R", &font_Font90Icon_48_1bpp, lv_color_hex(0xFF9900));
-  lv_obj_align(icon_TireInflation_Label, LV_ALIGN_TOP_MID, 70, 0);
+  lv_obj_t* Icon_TireInflation = create_label(SCR_MainMenu, LV_SYMBOL_LOOP, &lv_font_montserrat_48, lv_color_hex(0xFF9900));
+  lv_obj_align(Icon_TireInflation, LV_ALIGN_TOP_MID, 70, 0);
 
 
   lv_obj_t* enter_button = lv_button_create(SCR_MainMenu);
@@ -49,13 +49,13 @@ void Screen_MainMenu_PRE() {
   lv_obj_set_style_border_width(enter_button, 1, 0);
   lv_obj_set_style_border_color(enter_button, lv_color_white(), 0);
 
-
   // enter button label
   lv_obj_t* enter_label = lv_label_create(enter_button);
   lv_label_set_text(enter_label, "ENTER");
   lv_obj_center(enter_label);
   lv_obj_set_style_text_color(enter_label, lv_color_black(), 0);
   lv_obj_set_style_text_font(enter_label, &lv_font_montserrat_16, 0);
+  lv_obj_add_event_cb(enter_button, EnterButton_Clicked, LV_EVENT_CLICKED, NULL); // Add event callback
 }
 void Screen_MainMenu() {
   if (!Screen_MainMenu_INIT) {
