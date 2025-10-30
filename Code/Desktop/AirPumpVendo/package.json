@@ -1,18 +1,18 @@
 {
   "name": "airpumpvendo",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently -k -n NEXT,ELECTRON -c auto \"npm:dev:ui\" \"npm:dev:electron\"",
-    "dev:ui": "cd ui && next dev -p 3000",
+    "dev:ui": "npm run --prefix ui dev -- -p 3000",
     "dev:electron": "wait-on tcp:3000 && cross-env NODE_ENV=development DEV_SERVER_URL=http://localhost:3000 electron electron/main.js",
-    "build:ui": "cd ui && next build && next export",
-    "start": "cross-env NODE_ENV=production electron electron/main.js"
+    "build:ui": "npm run --prefix ui build && npm run --prefix ui export",
+    "start": "cross-env NODE_ENV=production electron electron/main.js",
+    "clean": "rimraf ui/out",
+    "build:app:arm64": "electron-builder --linux=AppImage --arm64",
+    "build:app:armv7l": "electron-builder --linux=AppImage --armv7l"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -20,10 +20,5 @@
     "electron-builder": "^26.0.12",
     "rimraf": "^6.0.1",
     "wait-on": "^9.0.1"
-  },
-  "dev:ui": "cd ui && next dev",
-  "build:ui": "cd ui && next build && next export",
-  "clean": "rimraf ui/out",
-  "build:app:arm64": "electron-builder --linux=AppImage --arm64",
-  "build:app:armv7l": "electron-builder --linux=AppImage --armv7l"
+  }
 }
