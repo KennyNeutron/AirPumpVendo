@@ -1,0 +1,26 @@
+{
+  "name": "airpumpvendo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
+    "rimraf": "^6.0.1",
+    "wait-on": "^9.0.1"
+  },
+  "dev:ui": "cd ui && next dev",
+  "build:ui": "cd ui && next build && next export",
+  "clean": "rimraf ui/out",
+  "build:app:arm64": "electron-builder --linux=AppImage --arm64",
+  "build:app:armv7l": "electron-builder --linux=AppImage --armv7l"
+
+}
