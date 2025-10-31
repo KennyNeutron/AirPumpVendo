@@ -1,21 +1,23 @@
-// CJS on purpose (root package has no "type":"module")
-const { app, BrowserWindow } = require("electron");
+// electron/main.js
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
 const isDev = process.env.NODE_ENV !== "production";
 const DEV_URL = process.env.DEV_SERVER_URL || "http://localhost:3000";
 
-// Hint Chromium to show the virtual keyboard on touch devices (RPi)
+// Help Chromium show the on-screen keyboard on touch devices
 app.commandLine.appendSwitch("enable-virtual-keyboard");
 
+let win;
+
 function createWindow() {
-  const win = new BrowserWindow({
-    // Fullscreen-only so OSK can appear above the app window
-    fullscreen: true,
-    kiosk: false, // important: leave kiosk OFF
-    alwaysOnTop: false, // important: leave alwaysOnTop OFF
+  win = new BrowserWindow({
+    fullscreen: false, // ← not fullscreen on launch
+    kiosk: false,
+    alwaysOnTop: false,
     autoHideMenuBar: true,
     backgroundColor: "#0b0f12",
+    show: false, // show after we maximize
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -24,15 +26,26 @@ function createWindow() {
     },
   });
 
+  win.once("ready-to-show", () => {
+    win.maximize(); // ← open maximized instead
+    win.show();
+  });
+
   if (isDev) {
     win.loadURL(DEV_URL);
-    // Open devtools in a separate window (doesn't block the OSK)
-    win.webContents.openDevTools({ mode: "detach" });
+    // win.webContents.openDevTools({ mode: "detach" }); // optional
   } else {
-    // Load the static export from Next.js
     win.loadFile(path.join(__dirname, "../ui/out/index.html"));
   }
 }
+
+// Fullscreen controls (optional, to use later from renderer)
+ipcMain.handle("fullscreen:enter", () => win && win.setFullScreen(true));
+ipcMain.handle("fullscreen:exit", () => win && win.setFullScreen(false));
+ipcMain.handle(
+  "fullscreen:toggle",
+  () => win && win.setFullScreen(!win.isFullScreen())
+);
 
 app.whenReady().then(() => {
   createWindow();
