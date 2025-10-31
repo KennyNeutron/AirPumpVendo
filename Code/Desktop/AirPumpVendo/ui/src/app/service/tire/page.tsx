@@ -16,23 +16,19 @@ export default function TireService() {
     [code]
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!valid) {
-      setError(
-        "Tire code not found in supported list. Please check formatting or try another code."
-      );
-      return;
-    }
+    if (!valid)
+      return setError("Tire code not found. Please check formatting.");
     setError(null);
     const q = new URLSearchParams({ code: code.trim(), pos });
     router.push(`/service/tire/result?${q.toString()}`);
   };
 
   return (
-    <main className="min-h-dvh p-6">
-      <div className="mx-auto w-full max-w-5xl">
-        <div className="mb-6 flex items-center">
+    <main className="min-h-dvh p-4">
+      <div className="mx-auto w-full max-w-[800px]">
+        <div className="mb-4">
           <Link
             href="/select-service"
             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
@@ -44,58 +40,47 @@ export default function TireService() {
           </Link>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <div className="mb-6 grid place-items-center gap-2 text-center">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/15 text-blue-600">
-              <span className="material-symbols-rounded text-[26px]">info</span>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 grid place-items-center gap-2 text-center">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/15 text-blue-600">
+              <span className="material-symbols-rounded text-[24px]">info</span>
             </span>
-            <h1 className="text-3xl font-semibold text-indigo-700">
+            <h1 className="text-2xl font-semibold text-indigo-700">
               Enter Your Tire Code
             </h1>
-            <p className="max-w-2xl text-slate-500">
-              Enter your tire code and select tire position to get the
-              recommended PSI
+            <p className="text-sm text-slate-500">
+              Enter your tire code and position to get the recommended PSI
             </p>
           </div>
 
-          <p className="mb-6 text-center text-slate-600">
+          <p className="mb-4 text-center text-sm text-slate-600">
             <span className="font-semibold">Service Cost:</span> ₱10
           </p>
 
-          <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-5">
+          <form onSubmit={submit} className="mx-auto max-w-[720px] space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-xs font-medium text-slate-700">
                 Tire Code
               </label>
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="e.g., 225/60R16 or 90/90-17 or 700x25C"
+                placeholder="e.g., 225/60R16 • 90/90-17 • 700x25C"
                 className="w-full rounded-lg border border-slate-300 bg-slate-100/70 px-3 py-3 text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:outline-none"
               />
-              <div className="mt-2 flex items-center gap-2 text-sm">
-                {code.trim().length > 0 ? (
-                  valid ? (
-                    <span className="text-green-600">Supported</span>
-                  ) : (
-                    <span className="text-amber-600">Unknown code</span>
-                  )
-                ) : (
-                  <span className="text-slate-500">
-                    Enter code exactly as printed
-                  </span>
-                )}
+              <div className="mt-1 text-xs text-slate-500">
+                Format examples: 205/55R16 • 225/60R16 • 90/90-17 • 700x25C
               </div>
               {error && (
-                <p className="mt-2 text-sm font-medium text-red-600">{error}</p>
+                <p className="mt-1 text-xs font-medium text-red-600">{error}</p>
               )}
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-slate-700">
+              <p className="mb-1 text-xs font-medium text-slate-700">
                 Tire Position
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 <button
                   type="button"
                   onClick={() => setPos("front")}
@@ -114,7 +99,9 @@ export default function TireService() {
                       Front Tires
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500">For steering comfort</p>
+                  <p className="text-xs text-slate-500">
+                    2 PSI less for steering comfort
+                  </p>
                 </button>
 
                 <button
@@ -135,30 +122,22 @@ export default function TireService() {
                       Rear Tires
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500">For load support</p>
+                  <p className="text-xs text-slate-500">
+                    2 PSI more to support load
+                  </p>
                 </button>
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 type="submit"
-                className="mx-auto block h-12 w-full max-w-xl rounded-lg bg-slate-900 text-center text-base font-semibold text-slate-50 shadow-md hover:bg-slate-800 active:translate-y-px"
+                className="mx-auto block h-12 w-full max-w-[640px] rounded-lg bg-slate-900 text-center text-base font-semibold text-slate-50 shadow-md hover:bg-slate-800 active:translate-y-px"
               >
                 Get PSI Recommendation
               </button>
             </div>
           </form>
-
-          <div className="mx-auto mt-7 max-w-3xl rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
-            <p className="mb-2 text-center font-medium text-slate-700">
-              Examples:
-            </p>
-            <p className="text-center text-sm text-slate-600">
-              Cars: 205/55R16 • Motorcycles: 90/90-17 • Road Bike: 700x25C •
-              MTB: 27.5x2.25
-            </p>
-          </div>
         </section>
       </div>
     </main>

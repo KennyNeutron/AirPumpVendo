@@ -7,7 +7,6 @@ import { getPsiPair } from "@/lib/tire-data";
 
 const INFO_COST = 10;
 const INFLATION_COST = 20;
-
 type Step = "payment" | "connect" | "inflate";
 
 export default function InflationScreen() {
@@ -29,22 +28,17 @@ export default function InflationScreen() {
   const total = INFO_COST + INFLATION_COST;
   const posLabel = pos === "front" ? "Front" : "Rear";
 
-  const stepBtnLabel =
+  const label =
     step === "payment"
       ? "Payment Inserted - Continue"
       : step === "connect"
       ? "Hose Connected - Continue"
       : "Start Inflation";
 
-  const onStep = (s: Step) => step === s;
   const advance = () => {
     if (step === "payment") setStep("connect");
     else if (step === "connect") setStep("inflate");
-    else {
-      // Placeholder for Arduino trigger
-      // TODO: start inflation IPC here
-      alert("Inflation start requested (hardware integration pending).");
-    }
+    else alert("Inflation start requested (hardware integration pending).");
   };
 
   const backHref = `/service/tire/result?code=${encodeURIComponent(
@@ -52,10 +46,9 @@ export default function InflationScreen() {
   )}&pos=${pos}&psi=${targetPsi}`;
 
   return (
-    <main className="min-h-dvh p-6">
-      <div className="mx-auto w-full max-w-5xl">
-        {/* Top bar */}
-        <div className="mb-6">
+    <main className="min-h-dvh p-4">
+      <div className="mx-auto w-full max-w-[800px]">
+        <div className="mb-4">
           <Link
             href={backHref}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
@@ -67,74 +60,65 @@ export default function InflationScreen() {
           </Link>
         </div>
 
-        {/* Card */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <div className="grid place-items-center gap-3 text-center">
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
-              <span className="material-symbols-rounded text-[26px]">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="grid place-items-center gap-2 text-center">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
+              <span className="material-symbols-rounded text-[24px]">
                 speed
               </span>
             </span>
-            <h1 className="text-3xl font-semibold text-amber-700">
+            <h1 className="text-2xl font-semibold text-amber-700">
               Tire Inflation Service
             </h1>
-            <p className="text-slate-500">
-              Follow the steps below to inflate your tire
-            </p>
+            <p className="text-sm text-slate-500">Follow the steps below</p>
             <p className="mt-1 font-semibold text-slate-800">
               Target PSI: {targetPsi > 0 ? targetPsi : "—"}
             </p>
           </div>
 
-          {/* Instructions panel */}
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
-            <p className="mb-3 font-medium text-slate-800">
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="mb-2 font-medium text-slate-800">
               Service Instructions
             </p>
-            <ul className="space-y-2 text-slate-700">
+            <ul className="space-y-1.5 text-slate-700 text-sm">
               <li>
                 <span className="font-semibold">Step 1:</span> Insert the total
-                amount to begin
+                amount
               </li>
               <li>
                 <span className="font-semibold">Step 2:</span> Connect the hose
               </li>
               <li>
-                <span className="font-semibold">Step 3:</span> Click Start
-                button to inflate
+                <span className="font-semibold">Step 3:</span> Tap Start to
+                inflate
               </li>
             </ul>
           </div>
 
-          {/* Total */}
-          <p className="mt-8 text-center text-xl font-semibold text-slate-800">
+          <p className="mt-6 text-center text-lg font-semibold text-slate-800">
             Total Amount: ₱{total}
           </p>
 
-          {/* Action button */}
-          <div className="mt-4">
+          <div className="mt-3">
             <button
               type="button"
               onClick={advance}
-              className="block w-full max-w-[720px] mx-auto h-12 rounded-lg bg-slate-950 text-slate-50 font-semibold shadow-md hover:bg-slate-900 active:translate-y-px"
+              className="mx-auto block h-12 w-full max-w-[720px] rounded-lg bg-slate-950 text-slate-50 text-base font-semibold shadow-md hover:bg-slate-900 active:translate-y-px"
             >
-              {stepBtnLabel}
+              {label}
             </button>
           </div>
 
-          {/* Stepper */}
-          <div className="mt-6 flex items-center justify-center gap-8 text-sm">
+          <div className="mt-5 flex items-center justify-center gap-6 text-xs">
             <div className="flex items-center gap-2">
               <span
                 className={`h-3 w-3 rounded-full ${
-                  onStep("payment") || step !== "payment"
-                    ? "bg-green-600"
-                    : "bg-slate-300"
+                  step !== "payment" ? "bg-green-600" : "bg-slate-300"
                 }`}
               />
               <span
                 className={
-                  onStep("payment")
+                  step === "payment"
                     ? "text-green-700 font-medium"
                     : "text-slate-500"
                 }
@@ -145,7 +129,7 @@ export default function InflationScreen() {
             <div className="flex items-center gap-2">
               <span
                 className={`h-3 w-3 rounded-full ${
-                  step === "connect" || step === "inflate"
+                  step === "inflate" || step === "connect"
                     ? "bg-green-600"
                     : "bg-slate-300"
                 }`}
@@ -178,8 +162,7 @@ export default function InflationScreen() {
             </div>
           </div>
 
-          {/* Context note */}
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-5 text-center text-xs text-slate-500">
             Code: <span className="font-mono">{code || "—"}</span> • Position:{" "}
             <span className="capitalize">{posLabel}</span>
           </p>
