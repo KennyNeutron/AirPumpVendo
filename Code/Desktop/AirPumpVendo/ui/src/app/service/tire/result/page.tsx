@@ -25,68 +25,74 @@ export default async function TireResult({
       : "Rear tires use 2 PSI more to better support load weight.";
 
   return (
-    <main className="min-h-dvh p-4">
-      <div className="mx-auto w-full max-w-[800px]">
-        <div className="mb-4 flex items-center justify-between">
+    <main className="h-dvh overflow-hidden p-3">
+      <div className="mx-auto w-full max-w-[800px] h-full grid grid-rows-[auto_1fr] gap-3">
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
           <Link
             href="/service/tire"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            <span className="material-symbols-rounded text-base">
+            <span className="material-symbols-rounded text-[16px]">
               arrow_back
-            </span>
+            </span>{" "}
             Back
           </Link>
           <Link
             href="/settings"
             aria-label="Settings"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            <span className="material-symbols-rounded text-[20px]">
+            <span className="material-symbols-rounded text-[18px]">
               settings
             </span>
           </Link>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 grid place-items-center gap-2 text-center">
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
-              <span className="material-symbols-rounded text-[24px]">
-                tire_repair
+        {/* Card */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm grid grid-rows-[auto_auto_1fr_auto] gap-3">
+          <div className="text-center">
+            <div className="mb-2 grid place-items-center">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                <span className="material-symbols-rounded text-[22px]">
+                  tire_repair
+                </span>
               </span>
-            </span>
-            <h1 className="text-2xl font-semibold text-indigo-700">
+            </div>
+            <h1 className="text-[20px] font-semibold text-indigo-700">
               PSI Recommendation
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-[12px] text-slate-500">
               Based on your tire code and position
             </p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-xs text-slate-500">Tire Code</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-3">
+              <p className="text-[11px] text-slate-500">Tire Code</p>
               <p className="mt-1 text-lg font-semibold text-slate-800">{raw}</p>
-              <p className="mt-3 text-xs text-slate-500">Position</p>
+              <p className="mt-2 text-[11px] text-slate-500">Position</p>
               <p className="mt-1 font-medium text-indigo-600">{posLabel}</p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-xs text-slate-500">Recommended PSI</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-3">
+              <p className="text-[11px] text-slate-500">Recommended PSI</p>
               <p className="mt-1 text-3xl font-bold text-emerald-600">
                 {recommended}
               </p>
-              <p className="mt-3 text-xs text-slate-500">Service Cost</p>
+              <p className="mt-2 text-[11px] text-slate-500">Service Cost</p>
               <p className="mt-1 font-medium text-slate-800">₱10</p>
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 bg-indigo-50 p-4">
-            <p className="mb-1 font-semibold text-indigo-900">Why this PSI?</p>
-            <p className="text-sm text-indigo-900/80">{why}</p>
+          <div className="rounded-xl border border-slate-200 bg-indigo-50 p-3">
+            <p className="mb-0.5 font-semibold text-indigo-900 text-[13px]">
+              Why this PSI?
+            </p>
+            <p className="text-[12px] text-indigo-900/80">{why}</p>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <Link
               href="/service/dot"
               className="block rounded-lg border border-slate-300 bg-white p-3 text-slate-800 shadow-sm hover:bg-slate-50"
@@ -97,7 +103,7 @@ export default async function TireResult({
                 </span>
                 <span>Check DOT Code</span>
               </div>
-              <p className="mt-1 text-center text-xs text-slate-500">₱15</p>
+              <p className="mt-1 text-center text-[12px] text-slate-500">₱15</p>
             </Link>
 
             <Link
@@ -110,16 +116,7 @@ export default async function TireResult({
                 <span className="material-symbols-rounded">tire_repair</span>
                 <span>Proceed to Tire Inflation</span>
               </div>
-              <p className="mt-1 text-center text-xs text-slate-300">₱20</p>
-            </Link>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Link
-              href="/service/tire"
-              className="inline-block text-xs font-medium text-indigo-700 hover:underline"
-            >
-              Enter Different Tire Code
+              <p className="mt-1 text-center text-[12px] text-slate-300">₱20</p>
             </Link>
           </div>
         </section>
