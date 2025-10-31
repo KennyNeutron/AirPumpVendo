@@ -13,7 +13,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Material Symbols (Rounded) */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,1,0"
