@@ -41,6 +41,7 @@ void processMessage(const String &msg) {
       // Put your action here, e.g.:
       // triggerRelay();
       delay(3000);
+      Vending = true;
     } else {
       Serial.print("Invalid PAYMENT amount: ");
       Serial.println(amountStr);

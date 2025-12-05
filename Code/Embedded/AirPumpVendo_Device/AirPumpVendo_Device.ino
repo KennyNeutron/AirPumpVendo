@@ -24,6 +24,7 @@ String inputBuffer = "";
 
 int Payable = 0;  // This will hold the parsed amount
 #define LEDpin 13
+bool Vending = false;
 
 void coinPulseISR() {
   pulseCount++;
@@ -70,7 +71,7 @@ void loop() {
         // Serial.print("Coin value: ");
         // Serial.print(coinValue);
         // Serial.print(" | Total credit: ");
-        Serial.println(totalCredit);
+        // Serial.println(totalCredit);
       } else {
         // Serial.println("Unknown coin / invalid pulse count");
       }
@@ -81,14 +82,16 @@ void loop() {
 
   SerialCOM();
 
-  if(Payable > 0){
-    if(totalCredit >= Payable){
-      Serial.println("PAYMENT COMPLETE");
-      while(1){
-        digitalWrite(LEDpin, 1);
-        delay(100);
-        digitalWrite(LEDpin, 0);
-        delay(100);
+  if (Vending) {
+    digitalWrite(LEDpin, 1);
+    delay(100);
+    digitalWrite(LEDpin, 0);
+    delay(100);
+    Serial.println("INSERTED:" + String(totalCredit));
+    if (Payable > 0) {
+      if (totalCredit >= Payable) {
+        Serial.println("PAYMENT COMPLETE");
+        Vending = false;
       }
     }
   }

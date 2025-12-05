@@ -1,6 +1,6 @@
 // File: ui/app/service/inflation/page.tsx
 // Purpose: 7" 800×480 optimized Inflation UI; auto-sends "PAYMENT:<total>" on mount,
-//          and advances to step 2 automatically upon receiving "PAYMENT COMPLETE".
+//          listens for "PAYMENT COMPLETE" to auto-advance, and shows live "INSERTED:<amt>" updates.
 
 "use client";
 
@@ -28,6 +28,7 @@ export default function InflationScreen() {
   }, [psiFromQuery, code, pos]);
 
   const [step, setStep] = useState<Step>("payment");
+  const [inserted, setInserted] = useState<number>(0); // defaults to 0 until Arduino reports
   const total = INFO_COST + INFLATION_COST;
   const posLabel = pos === "front" ? "Front" : "Rear";
 
@@ -40,9 +41,6 @@ export default function InflationScreen() {
 
   // Guard so send runs exactly once per mount (even with Strict Mode double-invoke in dev).
   const sentOnceRef = useRef(false);
-  // Keep a stable ref to know if we're still in the "payment" step when data arrives
-  const stepRef = useRef<Step>("payment");
-  stepRef.current = step;
 
   // Choose a port from the enumerated list in a platform-agnostic way.
   const choosePortFromList = (ports: any[]): string | null => {
@@ -104,16 +102,27 @@ export default function InflationScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for "PAYMENT COMPLETE" and advance automatically to step 2 (Connect)
+  // Listen for serial lines:
+  //  - "PAYMENT COMPLETE" → advance to Connect
+  //  - "INSERTED:<amt>"   → update current inserted pesos
   useEffect(() => {
     const api = (window as any)?.electronAPI;
     if (!api?.onSerialData) return;
 
     const unsubscribe = api.onSerialData((line: string) => {
-      const clean = String(line || "").trim().toUpperCase();
-      if (clean.includes("PAYMENT COMPLETE")) {
-        // Only advance if we're still on the payment step
+      const raw = String(line || "").trim();
+      const upper = raw.toUpperCase();
+
+      if (upper.includes("PAYMENT COMPLETE")) {
         setStep((prev) => (prev === "payment" ? "connect" : prev));
+        return;
+      }
+
+      const m = /^INSERTED\s*:\s*(-?\d+(?:\.\d+)?)/i.exec(raw);
+      if (m) {
+        // Pesos are integers for this flow, but allow decimal then floor.
+        const val = Math.max(0, Math.floor(Number(m[1])));
+        setInserted(val);
       }
     });
 
@@ -126,7 +135,6 @@ export default function InflationScreen() {
 
   const advance = async () => {
     if (step === "payment") {
-      // Payment already sent; we normally wait for Arduino, but keep manual advance as fallback
       setStep("connect");
     } else if (step === "connect") {
       setStep("inflate");
@@ -173,7 +181,12 @@ export default function InflationScreen() {
           </div>
 
           <p className="text-center text-[15px] font-semibold text-slate-800">
-            Total Amount: ₱{total}
+            Total: ₱{total}
+            <span className="mx-2 text-slate-400">•</span>
+            Inserted:{" "}
+            <span className={inserted >= total ? "text-green-700" : "text-amber-700"}>
+              ₱{inserted}
+            </span>
           </p>
 
           <button
