@@ -20,5 +20,8 @@
     "electron-builder": "^26.0.12",
     "rimraf": "^6.0.1",
     "wait-on": "^9.0.1"
+  },
+  "dependencies": {
+    "serialport": "^13.0.0"
   }
 }
