@@ -62,7 +62,9 @@ void processMessage(const String &msg) {
       Serial.println(Payable);
       // Put your action here, e.g.:
       // triggerRelay();
+      delay(5000);
       if(Payable == 30){
+        Serial.println("PAYMENT COMPLETE");
         while(1){
           digitalWrite(LEDpin, 1);
           delay(100);

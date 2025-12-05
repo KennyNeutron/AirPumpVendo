@@ -1,5 +1,6 @@
 // File: electron/main.js
-// Purpose: Electron main; maximized window, robust SerialPort IPC (platform-aware), CRLF writes, and no-op reopen if same port.
+// Purpose: Electron main; maximized window, robust SerialPort IPC (cross-platform), CRLF writes,
+//          line-based reads broadcast to renderer, and no-op reopen if same port.
 
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
@@ -8,7 +9,7 @@ const { SerialPort } = require("serialport");
 const isDev = process.env.NODE_ENV !== "production";
 const DEV_URL = process.env.DEV_SERVER_URL || "http://localhost:3000";
 
-// Make Chromium show OSK on touch devices
+// Show on-screen keyboard on touch devices
 app.commandLine.appendSwitch("enable-virtual-keyboard");
 
 let win;
@@ -17,6 +18,7 @@ let win;
 let serial = null;
 let serialPath = null;
 let serialBaud = null;
+let readBuffer = ""; // accumulate bytes until newline
 
 // Common USB-serial vendor IDs: Arduino, CH340, CP210x, FTDI
 const ARDUINO_VIDS = new Set(["2341", "2a03", "1a86", "10c4", "0403"]);
@@ -34,6 +36,28 @@ function guessPort(ports) {
   // Prefer known Arduino-like VIDs, else first port
   const byVid = ports.find((p) => ARDUINO_VIDS.has((p.vendorId || "").toLowerCase()));
   return (byVid || ports[0] || null)?.path || null;
+}
+
+function attachReadHandlers() {
+  if (!serial) return;
+  readBuffer = "";
+  serial.on("data", (chunk) => {
+    try {
+      readBuffer += Buffer.isBuffer(chunk) ? chunk.toString("utf8") : String(chunk);
+      // Emit each full line (handles \n or \r\n)
+      let idx;
+      while ((idx = readBuffer.indexOf("\n")) >= 0) {
+        let line = readBuffer.slice(0, idx);
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        readBuffer = readBuffer.slice(idx + 1);
+        if (win && !win.isDestroyed()) {
+          win.webContents.send("serial:data", line);
+        }
+      }
+    } catch (e) {
+      console.warn("[serial] read error:", e.message);
+    }
+  });
 }
 
 async function openSerial(portPath, baud = 115200) {
@@ -58,6 +82,7 @@ async function openSerial(portPath, baud = 115200) {
       console.log(`[serial] opened ${portPath} @ ${baud}`);
       serial.on("error", (e) => console.error("[serial] error:", e));
       serial.on("close", () => console.log("[serial] closed"));
+      attachReadHandlers();
       resolve({ path: portPath, baud });
     });
   });
@@ -98,14 +123,20 @@ ipcMain.handle("serial:status", async () => ({
   baud: serialBaud,
 }));
 
-// Platform-aware auto-open (nice for kiosk boot)
+// Platform-aware auto-open (kiosk-friendly)
 async function autoOpenSerial() {
   const platform = process.platform;
 
   if (platform === "linux") {
     for (const p of ["/dev/ttyUSB0", "/dev/ttyACM0"]) {
-      try { await openSerial(p, 115200); return; } catch {}
-      try { await openSerial(p, 9600); return; } catch {}
+      try {
+        await openSerial(p, 115200);
+        return;
+      } catch {}
+      try {
+        await openSerial(p, 9600);
+        return;
+      } catch {}
     }
   }
 

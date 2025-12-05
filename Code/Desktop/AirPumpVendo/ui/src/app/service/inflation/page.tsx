@@ -1,12 +1,12 @@
 // File: ui/app/service/inflation/page.tsx
-// Purpose: 7" 800×480 optimized Inflation UI; sends "PAYMENT:<total>" over the currently-open port,
-//          or opens a suitable port from the enumerated list (platform-aware) before sending.
+// Purpose: 7" 800×480 optimized Inflation UI; auto-sends "PAYMENT:<total>" on mount,
+//          and advances to step 2 automatically upon receiving "PAYMENT COMPLETE".
 
 "use client";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getPsiPair } from "@/lib/tire-data";
 
 const INFO_COST = 10;
@@ -38,6 +38,12 @@ export default function InflationScreen() {
       ? "Hose Connected - Continue"
       : "Start Inflation";
 
+  // Guard so send runs exactly once per mount (even with Strict Mode double-invoke in dev).
+  const sentOnceRef = useRef(false);
+  // Keep a stable ref to know if we're still in the "payment" step when data arrives
+  const stepRef = useRef<Step>("payment");
+  stepRef.current = step;
+
   // Choose a port from the enumerated list in a platform-agnostic way.
   const choosePortFromList = (ports: any[]): string | null => {
     if (!Array.isArray(ports) || ports.length === 0) return null;
@@ -67,7 +73,6 @@ export default function InflationScreen() {
       const ports = await api.serialList?.();
       const chosen = choosePortFromList(ports || []);
       if (chosen) {
-        // Try 115200 then 9600
         const tryOpen = async (baud: number) => {
           try {
             await api.serialOpen(chosen, baud);
@@ -79,6 +84,8 @@ export default function InflationScreen() {
         if (!(await tryOpen(115200))) {
           await tryOpen(9600);
         }
+        // Small settle delay for boards that reset on open
+        await new Promise((r) => setTimeout(r, 350));
       }
     }
 
@@ -89,9 +96,37 @@ export default function InflationScreen() {
     }
   };
 
+  // Auto-send on page load
+  useEffect(() => {
+    if (sentOnceRef.current) return;
+    sentOnceRef.current = true;
+    void ensurePortAndSend();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Listen for "PAYMENT COMPLETE" and advance automatically to step 2 (Connect)
+  useEffect(() => {
+    const api = (window as any)?.electronAPI;
+    if (!api?.onSerialData) return;
+
+    const unsubscribe = api.onSerialData((line: string) => {
+      const clean = String(line || "").trim().toUpperCase();
+      if (clean.includes("PAYMENT COMPLETE")) {
+        // Only advance if we're still on the payment step
+        setStep((prev) => (prev === "payment" ? "connect" : prev));
+      }
+    });
+
+    return () => {
+      try {
+        unsubscribe?.();
+      } catch {}
+    };
+  }, []);
+
   const advance = async () => {
     if (step === "payment") {
-      await ensurePortAndSend();
+      // Payment already sent; we normally wait for Arduino, but keep manual advance as fallback
       setStep("connect");
     } else if (step === "connect") {
       setStep("inflate");
