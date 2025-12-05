@@ -1,5 +1,6 @@
 // File: ui/app/service/inflation/page.tsx
-// Purpose: 7" 800×480 optimized Inflation UI. Sends "PAYMENT" over serial on payment confirmation.
+// Purpose: 7" 800×480 optimized Inflation UI; sends "PAYMENT:<total>" over the currently-open port,
+//          or opens a suitable port from the enumerated list (platform-aware) before sending.
 
 "use client";
 
@@ -37,14 +38,60 @@ export default function InflationScreen() {
       ? "Hose Connected - Continue"
       : "Start Inflation";
 
+  // Choose a port from the enumerated list in a platform-agnostic way.
+  const choosePortFromList = (ports: any[]): string | null => {
+    if (!Array.isArray(ports) || ports.length === 0) return null;
+
+    // Prefer Linux /dev/ttyUSB* then /dev/ttyACM*
+    const linuxUSB = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB"));
+    if (linuxUSB) return linuxUSB.path;
+    const linuxACM = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM"));
+    if (linuxACM) return linuxACM.path;
+
+    // Prefer Windows COM* ports
+    const winCOM = ports.find((p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path));
+    if (winCOM) return winCOM.path;
+
+    // Otherwise first path
+    return typeof ports[0].path === "string" ? ports[0].path : null;
+  };
+
+  // Ensure a serial port is open, then send "PAYMENT:<total>"
+  const ensurePortAndSend = async () => {
+    const api = (window as any)?.electronAPI;
+    if (!api) return;
+
+    let st = await api.serialStatus?.();
+
+    if (!st?.isOpen) {
+      const ports = await api.serialList?.();
+      const chosen = choosePortFromList(ports || []);
+      if (chosen) {
+        // Try 115200 then 9600
+        const tryOpen = async (baud: number) => {
+          try {
+            await api.serialOpen(chosen, baud);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!(await tryOpen(115200))) {
+          await tryOpen(9600);
+        }
+      }
+    }
+
+    try {
+      await api.serialWrite?.(`PAYMENT:${total}`);
+    } catch (e) {
+      console.warn("PAYMENT send failed:", e);
+    }
+  };
+
   const advance = async () => {
     if (step === "payment") {
-      // Send "PAYMENT" over serial (main process will append newline)
-      try {
-        await (window as any)?.electronAPI?.serialWrite?.("PAYMENT");
-      } catch (e) {
-        console.warn("PAYMENT send failed:", e);
-      }
+      await ensurePortAndSend();
       setStep("connect");
     } else if (step === "connect") {
       setStep("inflate");
