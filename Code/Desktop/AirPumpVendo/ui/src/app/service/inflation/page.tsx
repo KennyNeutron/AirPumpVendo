@@ -1,6 +1,7 @@
 // File: ui/app/service/inflation/page.tsx
 // Purpose: 7" 800×480 optimized Inflation UI; auto-sends "PAYMENT:<total>" on mount,
-//          listens for "PAYMENT COMPLETE" to auto-advance, and shows live "INSERTED:<amt>" updates.
+//          listens for "INSERTED:<amt>" and "PAYMENT COMPLETE", and on "Start Inflation"
+//          sends "INFLATE:<targetPsi>" over serial.
 
 "use client";
 
@@ -60,33 +61,40 @@ export default function InflationScreen() {
     return typeof ports[0].path === "string" ? ports[0].path : null;
   };
 
-  // Ensure a serial port is open, then send "PAYMENT:<total>"
-  const ensurePortAndSend = async () => {
+  // Ensure a serial port is open (no write)
+  const ensurePortOpen = async () => {
+    const api = (window as any)?.electronAPI;
+    if (!api) return false;
+
+    const st = await api.serialStatus?.();
+    if (st?.isOpen) return true;
+
+    const ports = await api.serialList?.();
+    const chosen = choosePortFromList(ports || []);
+    if (!chosen) return false;
+
+    const tryOpen = async (baud: number) => {
+      try {
+        await api.serialOpen(chosen, baud);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    if (!(await tryOpen(115200))) {
+      if (!(await tryOpen(9600))) return false;
+    }
+    // Small settle delay for boards that reset on open
+    await new Promise((r) => setTimeout(r, 350));
+    return true;
+  };
+
+  // Send PAYMENT:<total> (used on first load)
+  const sendPayment = async () => {
     const api = (window as any)?.electronAPI;
     if (!api) return;
-
-    let st = await api.serialStatus?.();
-
-    if (!st?.isOpen) {
-      const ports = await api.serialList?.();
-      const chosen = choosePortFromList(ports || []);
-      if (chosen) {
-        const tryOpen = async (baud: number) => {
-          try {
-            await api.serialOpen(chosen, baud);
-            return true;
-          } catch {
-            return false;
-          }
-        };
-        if (!(await tryOpen(115200))) {
-          await tryOpen(9600);
-        }
-        // Small settle delay for boards that reset on open
-        await new Promise((r) => setTimeout(r, 350));
-      }
-    }
-
+    const ok = await ensurePortOpen();
+    if (!ok) return;
     try {
       await api.serialWrite?.(`PAYMENT:${total}`);
     } catch (e) {
@@ -94,11 +102,11 @@ export default function InflationScreen() {
     }
   };
 
-  // Auto-send on page load
+  // Auto-send PAYMENT on page load
   useEffect(() => {
     if (sentOnceRef.current) return;
     sentOnceRef.current = true;
-    void ensurePortAndSend();
+    void sendPayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -120,7 +128,6 @@ export default function InflationScreen() {
 
       const m = /^INSERTED\s*:\s*(-?\d+(?:\.\d+)?)/i.exec(raw);
       if (m) {
-        // Pesos are integers for this flow, but allow decimal then floor.
         const val = Math.max(0, Math.floor(Number(m[1])));
         setInserted(val);
       }
@@ -133,13 +140,32 @@ export default function InflationScreen() {
     };
   }, []);
 
+  // Send INFLATE:<targetPsi> when the Start Inflation button is pressed
+  const sendInflate = async () => {
+    const api = (window as any)?.electronAPI;
+    if (!api) return;
+    if (!Number.isFinite(targetPsi) || targetPsi <= 0) {
+      console.warn("Invalid PSI; not sending INFLATE");
+      return;
+    }
+    const ok = await ensurePortOpen();
+    if (!ok) return;
+    try {
+      await api.serialWrite?.(`INFLATE:${Math.round(targetPsi)}`);
+    } catch (e) {
+      console.warn("INFLATE send failed:", e);
+    }
+  };
+
   const advance = async () => {
     if (step === "payment") {
       setStep("connect");
     } else if (step === "connect") {
       setStep("inflate");
     } else {
-      alert("Inflation start requested (hardware integration pending).");
+      // step === "inflate"
+      await sendInflate();
+      // You can optionally transition UI state here (e.g., disable button or show "Inflating...")
     }
   };
 

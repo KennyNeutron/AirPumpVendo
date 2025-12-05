@@ -19,10 +19,12 @@ volatile unsigned long lastPulseTime = 0;
 
 long totalCredit = 0;  // e.g. in pesos or credits
 
-const String PREFIX = "PAYMENT:";
+const String PREFIX_PAYMENT = "PAYMENT:";
+const String PREFIX_INFLATE = "INFLATE:";
 String inputBuffer = "";
 
-int Payable = 0;  // This will hold the parsed amount
+int Payable = 0;         // This will hold the parsed amount
+int TargetPressure = 0;  // Target pressure in PSI
 #define LEDpin 13
 bool Vending = false;
 

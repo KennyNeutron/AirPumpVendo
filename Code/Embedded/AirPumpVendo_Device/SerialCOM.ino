@@ -24,9 +24,9 @@ void SerialCOM() {
 
 void processMessage(const String &msg) {
   // Check if message starts with "PAYMENT:"
-  if (msg.startsWith(PREFIX)) {
+  if (msg.startsWith(PREFIX_PAYMENT)) {
     // Extract the part after "PAYMENT:"
-    String amountStr = msg.substring(PREFIX.length());
+    String amountStr = msg.substring(PREFIX_PAYMENT.length());
     amountStr.trim();  // Remove any spaces or stray characters
 
     // Convert to integer
@@ -46,8 +46,32 @@ void processMessage(const String &msg) {
       Serial.print("Invalid PAYMENT amount: ");
       Serial.println(amountStr);
     }
+  }
+  // Check if message starts with "INFLATE:"
+  else if (msg.startsWith(PREFIX_INFLATE)) {
+    String pressureStr = msg.substring(PREFIX_INFLATE.length());
+    pressureStr.trim();
+
+    int value = pressureStr.toInt();
+
+    if (value > 0 || pressureStr == "0") {
+      TargetPressure = value;
+      Serial.print("INFLATE command received. Target Pressure: ");
+      Serial.println(TargetPressure);
+      if (value == 32) {
+        while (1) {
+          digitalWrite(LEDpin, 1);
+          delay(100);
+          digitalWrite(LEDpin, 0);
+          delay(100);
+        }
+      }
+    } else {
+      Serial.print("Invalid INFLATE pressure: ");
+      Serial.println(pressureStr);
+    }
   } else {
-    // Not a PAYMENT message, just echo
+    // Not a known message, just echo
     Serial.print("Received (ignored): ");
     Serial.println(msg);
   }
