@@ -1,12 +1,13 @@
 // File: ui/app/service/inflation/page.tsx
+// Path: ui/app/service/inflation/page.tsx
 // Purpose: 7" 800×480 optimized Inflation UI; auto-sends "PAYMENT:<total>" on mount,
-//          listens for "INSERTED:<amt>" and "PAYMENT COMPLETE", and on "Start Inflation"
-//          sends "INFLATE:<targetPsi>" over serial.
+//          listens for "INSERTED:<amt>" and "PAYMENT COMPLETE", and during inflation
+//          shows a live PSI progress bar. On completion, button switches to "Back to Home".
 
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getPsiPair } from "@/lib/tire-data";
 
@@ -15,6 +16,7 @@ const INFLATION_COST = 20;
 type Step = "payment" | "connect" | "inflate";
 
 export default function InflationScreen() {
+  const router = useRouter();
   const sp = useSearchParams();
   const code = sp.get("code") ?? "";
   const pos = (sp.get("pos") === "rear" ? "rear" : "front") as "front" | "rear";
@@ -29,7 +31,11 @@ export default function InflationScreen() {
   }, [psiFromQuery, code, pos]);
 
   const [step, setStep] = useState<Step>("payment");
-  const [inserted, setInserted] = useState<number>(0); // defaults to 0 until Arduino reports
+  const [inserted, setInserted] = useState<number>(0);
+  const [inflationStarted, setInflationStarted] = useState<boolean>(false);
+  const [currentPressure, setCurrentPressure] = useState<number | null>(null);
+  const [completed, setCompleted] = useState<boolean>(false);
+
   const total = INFO_COST + INFLATION_COST;
   const posLabel = pos === "front" ? "Front" : "Rear";
 
@@ -38,26 +44,24 @@ export default function InflationScreen() {
       ? "Payment Inserted - Continue"
       : step === "connect"
       ? "Hose Connected - Continue"
+      : completed
+      ? "Back to Home"
+      : inflationStarted
+      ? "Inflating..."
       : "Start Inflation";
 
-  // Guard so send runs exactly once per mount (even with Strict Mode double-invoke in dev).
+  // Guard so PAYMENT send runs exactly once per mount
   const sentOnceRef = useRef(false);
 
   // Choose a port from the enumerated list in a platform-agnostic way.
   const choosePortFromList = (ports: any[]): string | null => {
     if (!Array.isArray(ports) || ports.length === 0) return null;
-
-    // Prefer Linux /dev/ttyUSB* then /dev/ttyACM*
     const linuxUSB = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB"));
     if (linuxUSB) return linuxUSB.path;
     const linuxACM = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM"));
     if (linuxACM) return linuxACM.path;
-
-    // Prefer Windows COM* ports
     const winCOM = ports.find((p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path));
     if (winCOM) return winCOM.path;
-
-    // Otherwise first path
     return typeof ports[0].path === "string" ? ports[0].path : null;
   };
 
@@ -84,12 +88,10 @@ export default function InflationScreen() {
     if (!(await tryOpen(115200))) {
       if (!(await tryOpen(9600))) return false;
     }
-    // Small settle delay for boards that reset on open
     await new Promise((r) => setTimeout(r, 350));
     return true;
   };
 
-  // Send PAYMENT:<total> (used on first load)
   const sendPayment = async () => {
     const api = (window as any)?.electronAPI;
     if (!api) return;
@@ -102,7 +104,6 @@ export default function InflationScreen() {
     }
   };
 
-  // Auto-send PAYMENT on page load
   useEffect(() => {
     if (sentOnceRef.current) return;
     sentOnceRef.current = true;
@@ -110,9 +111,7 @@ export default function InflationScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for serial lines:
-  //  - "PAYMENT COMPLETE" → advance to Connect
-  //  - "INSERTED:<amt>"   → update current inserted pesos
+  // Serial listener
   useEffect(() => {
     const api = (window as any)?.electronAPI;
     if (!api?.onSerialData) return;
@@ -126,10 +125,29 @@ export default function InflationScreen() {
         return;
       }
 
-      const m = /^INSERTED\s*:\s*(-?\d+(?:\.\d+)?)/i.exec(raw);
-      if (m) {
-        const val = Math.max(0, Math.floor(Number(m[1])));
+      const mInserted = /^INSERTED\s*:\s*(-?\d+(?:\.\d+)?)/i.exec(raw);
+      if (mInserted) {
+        const val = Math.max(0, Math.floor(Number(mInserted[1])));
         setInserted(val);
+        return;
+      }
+
+      const mPressure = /^PRESSURE\s*:\s*(-?\d+(?:\.\d+)?)/i.exec(raw);
+      if (mPressure) {
+        const psi = Math.max(0, Number(mPressure[1]));
+        const rounded = Math.round(psi);
+        setCurrentPressure(rounded);
+        // Auto-detect completion if at/above target
+        if (targetPsi > 0 && rounded >= Math.round(targetPsi)) {
+          setCompleted(true);
+        }
+        return;
+      }
+
+      // Explicit completion keywords from Arduino (optional)
+      if (/(INFLATION\s*COMPLETE|INFLATE\s*COMPLETE|TARGET\s*REACHED|DONE)/i.test(raw)) {
+        setCompleted(true);
+        return;
       }
     });
 
@@ -138,9 +156,9 @@ export default function InflationScreen() {
         unsubscribe?.();
       } catch {}
     };
-  }, []);
+  }, [targetPsi]);
 
-  // Send INFLATE:<targetPsi> when the Start Inflation button is pressed
+  // Send INFLATE when starting; init pressure to 0 for the progress bar
   const sendInflate = async () => {
     const api = (window as any)?.electronAPI;
     if (!api) return;
@@ -151,6 +169,9 @@ export default function InflationScreen() {
     const ok = await ensurePortOpen();
     if (!ok) return;
     try {
+      setInflationStarted(true);
+      setCurrentPressure(0);
+      setCompleted(false);
       await api.serialWrite?.(`INFLATE:${Math.round(targetPsi)}`);
     } catch (e) {
       console.warn("INFLATE send failed:", e);
@@ -164,10 +185,19 @@ export default function InflationScreen() {
       setStep("inflate");
     } else {
       // step === "inflate"
-      await sendInflate();
-      // You can optionally transition UI state here (e.g., disable button or show "Inflating...")
+      if (completed) {
+        router.push("/");
+      } else if (!inflationStarted) {
+        await sendInflate();
+      }
     }
   };
+
+  const progress = useMemo(() => {
+    if (!inflationStarted || !Number.isFinite(targetPsi) || targetPsi <= 0) return 0;
+    const cp = currentPressure ?? 0;
+    return Math.max(0, Math.min(100, Math.round((cp / targetPsi) * 100)));
+  }, [inflationStarted, currentPressure, targetPsi]);
 
   const backHref = `/service/tire/result?code=${encodeURIComponent(code)}&pos=${pos}&psi=${targetPsi}`;
 
@@ -195,7 +225,7 @@ export default function InflationScreen() {
             <p className="mt-1 font-semibold text-slate-800">Target PSI: {targetPsi > 0 ? targetPsi : "—"}</p>
           </div>
 
-          <div className="grid content-center">
+          <div className="grid content-center gap-3">
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
               <p className="mb-1.5 font-medium text-slate-800">Service Instructions</p>
               <ul className="space-y-1 text-slate-700 text-[12px]">
@@ -204,6 +234,31 @@ export default function InflationScreen() {
                 <li><span className="font-semibold">Step 3:</span> Tap Start to inflate</li>
               </ul>
             </div>
+
+            {step === "inflate" && inflationStarted && (
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="flex items-end justify-between">
+                  <div className="text-[12px] text-slate-500">Current Pressure</div>
+                  <div className="text-[12px] text-slate-500">{progress}%</div>
+                </div>
+                <div className="mt-2 h-4 w-full rounded-md bg-slate-200 overflow-hidden">
+                  <div
+                    className="h-full rounded-md bg-amber-500 transition-[width] duration-200"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-center text-[28px] leading-none font-bold text-slate-900 tracking-tight">
+                  {(currentPressure ?? 0)} <span className="text-[14px] font-semibold">PSI</span>
+                  <span className="mx-2 text-slate-400 text-[14px] font-normal">/</span>
+                  {Math.round(targetPsi)} <span className="text-[14px] font-semibold">PSI</span>
+                </div>
+                {completed && (
+                  <p className="mt-2 text-center text-[12px] font-medium text-green-700">
+                    Inflation complete.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <p className="text-center text-[15px] font-semibold text-slate-800">
@@ -218,7 +273,11 @@ export default function InflationScreen() {
           <button
             type="button"
             onClick={advance}
-            className="mx-auto block h-12 w-full max-w-[720px] rounded-lg bg-slate-950 text-slate-50 text-base font-semibold shadow-md hover:bg-slate-900 active:translate-y-px"
+            className={`mx-auto block h-12 w-full max-w-[720px] rounded-lg text-base font-semibold shadow-md active:translate-y-px ${
+              completed
+                ? "bg-green-700 text-white hover:bg-green-600"
+                : "bg-slate-950 text-slate-50 hover:bg-slate-900"
+            }`}
           >
             {label}
           </button>

@@ -58,14 +58,7 @@ void processMessage(const String &msg) {
       TargetPressure = value;
       Serial.print("INFLATE command received. Target Pressure: ");
       Serial.println(TargetPressure);
-      if (value == 32) {
-        while (1) {
-          digitalWrite(LEDpin, 1);
-          delay(100);
-          digitalWrite(LEDpin, 0);
-          delay(100);
-        }
-      }
+      Inflating = true;
     } else {
       Serial.print("Invalid INFLATE pressure: ");
       Serial.println(pressureStr);

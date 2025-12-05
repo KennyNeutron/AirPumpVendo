@@ -28,6 +28,28 @@ int TargetPressure = 0;  // Target pressure in PSI
 #define LEDpin 13
 bool Vending = false;
 
+
+#define SolenoidPin 3
+const int PRESSURE_PIN = A0;  // Analog pin where sensor signal is connected
+
+// ADC / voltage configuration
+const float VREF = 5.0;        // ADC reference voltage (5 V for typical Arduino)
+const float ADC_MAX = 1023.0;  // 10-bit ADC max value
+
+// Sensor characteristics (typical for 0.5–4.5 V transducer)
+const float SENSOR_MIN_V = 0.5;    // Voltage at 0 MPa
+const float SENSOR_MAX_V = 4.5;    // Voltage at full scale (1.2 MPa)
+const float SENSOR_MAX_MPA = 1.2;  // Full-scale pressure in MPa
+
+// Reading configuration
+const unsigned long READ_INTERVAL_MS = 500;  // how often to print
+const int NUM_SAMPLES = 10;                  // samples to average per reading
+
+unsigned long lastReadTime = 0;
+bool Inflating = false;
+float pressureBar = 0.0;
+float pressurePSI = 0.0;
+
 void coinPulseISR() {
   pulseCount++;
   lastPulseTime = millis();
@@ -38,7 +60,12 @@ void setup() {
 
   pinMode(LEDpin, OUTPUT);
   digitalWrite(LEDpin, 0);
+
+  pinMode(SolenoidPin, OUTPUT);
+  digitalWrite(SolenoidPin, 0);
+
   pinMode(COIN_PIN, INPUT_PULLUP);  // Expect active-LOW pulses
+  pinMode(PRESSURE_PIN, INPUT);
 
   attachInterrupt(digitalPinToInterrupt(COIN_PIN), coinPulseISR, FALLING);
 
@@ -85,7 +112,7 @@ void loop() {
   SerialCOM();
 
   if (Vending) {
-    digitalWrite(LEDpin, 1);
+    digitalWrite(LEDpin, 1);pok
     delay(100);
     digitalWrite(LEDpin, 0);
     delay(100);
@@ -95,6 +122,17 @@ void loop() {
         Serial.println("PAYMENT COMPLETE");
         Vending = false;
       }
+    }
+  }
+
+  if (Inflating) {
+    digitalWrite(SolenoidPin, 1);
+    PressureInflate();
+    int pressurePSI_Int = (int)(pressurePSI);
+    Serial.println("PRESSURE:" + String(pressurePSI_Int));
+    if (pressurePSI_Int >= TargetPressure) {
+      Inflating = false;
+      digitalWrite(SolenoidPin, 0);
     }
   }
 }
