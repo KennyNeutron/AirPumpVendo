@@ -1,10 +1,512 @@
-export default function Settings() {
+// File: ui/app/settings/page.tsx
+// Path: ui/app/settings/page.tsx
+
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+
+type Tab = "analytics" | "pricing" | "dot" | "tire" | "settings";
+
+export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<Tab>("analytics");
+
   return (
-    <main className="min-h-dvh grid place-items-center p-6 text-center">
-      <div>
-        <h1 className="mb-2 text-2xl font-semibold text-slate-800">Settings</h1>
-        <p className="text-slate-600">Configure kiosk options here.</p>
+    <main className="h-dvh overflow-hidden bg-slate-50 p-3">
+      <div className="mx-auto flex h-full w-full max-w-[800px] flex-col gap-3">
+        {/* Header */}
+        <header className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-slate-800">Admin Panel</h1>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+          >
+            <span className="material-symbols-rounded text-[16px]">logout</span>
+            Logout
+          </Link>
+        </header>
+
+        {/* Tabs */}
+        <nav className="flex rounded-xl bg-white p-1 shadow-sm">
+          <TabButton
+            active={activeTab === "settings"}
+            onClick={() => setActiveTab("settings")}
+            icon="settings"
+            label="Settings"
+          />
+          <TabButton
+            active={activeTab === "tire"}
+            onClick={() => setActiveTab("tire")}
+            icon="tire_repair"
+            label="Tire Codes"
+          />
+          <TabButton
+            active={activeTab === "dot"}
+            onClick={() => setActiveTab("dot")}
+            icon="shield"
+            label="DOT Codes"
+          />
+          <TabButton
+            active={activeTab === "pricing"}
+            onClick={() => setActiveTab("pricing")}
+            icon="attach_money"
+            label="Pricing"
+          />
+          <TabButton
+            active={activeTab === "analytics"}
+            onClick={() => setActiveTab("analytics")}
+            icon="analytics"
+            label="Analytics"
+          />
+        </nav>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-hidden rounded-2xl bg-white p-4 shadow-sm">
+          <div className="h-full overflow-y-auto pr-1">
+            {activeTab === "analytics" && <AnalyticsTab />}
+            {activeTab === "pricing" && <PricingTab />}
+            {activeTab === "dot" && <DotCodesTab />}
+            {activeTab === "tire" && <TireCodesTab />}
+            {activeTab === "settings" && <SettingsTab />}
+          </div>
+        </div>
       </div>
     </main>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: string;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-[13px] font-medium transition ${
+        active
+          ? "bg-white shadow-sm text-slate-900 ring-1 ring-slate-200"
+          : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+      }`}
+    >
+      <span className="material-symbols-rounded text-[18px]">{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+/* -------------------- TABS -------------------- */
+
+function AnalyticsTab() {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Weekly Revenue */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+          <h3 className="mb-4 text-[14px] font-medium text-slate-700">
+            Weekly Revenue
+          </h3>
+          <div className="text-center">
+            <div className="text-[32px] font-bold text-slate-900">₱0</div>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+              This Week
+            </span>
+          </div>
+          <button className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50">
+            Reset Weekly Total
+          </button>
+        </div>
+
+        {/* Service Statistics */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+          <h3 className="mb-4 text-[14px] font-medium text-slate-700">
+            Service Statistics
+          </h3>
+          <ul className="space-y-3 text-[13px]">
+            <li className="flex justify-between">
+              <span className="text-slate-500">Total Tire Codes:</span>
+              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+                5
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-slate-500">Total DOT Codes:</span>
+              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+                10
+              </span>
+            </li>
+            <li className="flex justify-between items-center">
+              <span className="text-slate-500">DOT Check Status:</span>
+              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+                Enabled
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-slate-500">Services Available:</span>
+              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+                3
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h3 className="mb-3 text-[14px] font-medium text-slate-700">
+          Quick Actions
+        </h3>
+        <div className="grid gap-3 md:grid-cols-3">
+          <ActionButton icon="database" label="Export Data" />
+          <ActionButton icon="settings" label="System Settings" />
+          <ActionButton icon="attach_money" label="Financial Report" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({ icon, label }: { icon: string; label: string }) {
+  return (
+    <button className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50">
+      <span className="material-symbols-rounded text-[20px] text-slate-600">
+        {icon}
+      </span>
+      <span className="text-[12px] font-medium text-slate-700">{label}</span>
+    </button>
+  );
+}
+
+function PricingTab() {
+  return (
+    <div>
+      <h3 className="mb-4 text-[16px] font-medium text-slate-800">
+        Service Pricing (₱)
+      </h3>
+      <div className="grid gap-4 md:grid-cols-3">
+        <InputGroup label="Tire Code Info" defaultValue="10" />
+        <InputGroup label="DOT Code Check" defaultValue="15" />
+        <InputGroup label="Tire Inflation" defaultValue="20" />
+      </div>
+    </div>
+  );
+}
+
+function InputGroup({
+  label,
+  defaultValue,
+}: {
+  label: string;
+  defaultValue: string;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[12px] font-semibold text-slate-700">
+        {label}
+      </label>
+      <input
+        type="number"
+        defaultValue={defaultValue}
+        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[14px] font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+    </div>
+  );
+}
+
+function DotCodesTab() {
+  // Mock data
+  const codes = [
+    {
+      code: "1017",
+      week: 10,
+      year: 2017,
+      age: 7.8,
+      status: "WARNING",
+      statusColor: "bg-amber-100 text-amber-700",
+      icon: "warning",
+      iconColor: "text-amber-500",
+    },
+    {
+      code: "1021",
+      week: 10,
+      year: 2021,
+      age: 3.8,
+      status: "SAFE",
+      statusColor: "bg-emerald-100 text-emerald-700",
+      icon: "check_circle",
+      iconColor: "text-emerald-500",
+    },
+    {
+      code: "2018",
+      week: 20,
+      year: 2018,
+      age: 6.5,
+      status: "WARNING",
+      statusColor: "bg-amber-100 text-amber-700",
+      icon: "warning",
+      iconColor: "text-amber-500",
+    },
+    {
+      code: "2023",
+      week: 20,
+      year: 2023,
+      age: 1.5,
+      status: "SAFE",
+      statusColor: "bg-emerald-100 text-emerald-700",
+      icon: "check_circle",
+      iconColor: "text-emerald-500",
+    },
+    {
+      code: "2212",
+      week: 22,
+      year: 2012,
+      age: 12.5,
+      status: "REPLACE",
+      statusColor: "bg-red-100 text-red-700",
+      icon: "error",
+      iconColor: "text-red-500",
+    },
+    {
+      code: "3015",
+      week: 30,
+      year: 2015,
+      age: 9.2,
+      status: "WARNING",
+      statusColor: "bg-amber-100 text-amber-700",
+      icon: "warning",
+      iconColor: "text-amber-500",
+    },
+  ];
+
+  return (
+    <div>
+      <h3 className="mb-4 text-[16px] font-medium text-slate-800">
+        DOT Code Database
+      </h3>
+
+      {/* Add Form */}
+      <div className="mb-6 grid gap-2 md:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            DOT Code
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. 0718"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            Year
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. 2018"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            Week
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. 7"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            Status
+          </label>
+          <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]">
+            <option>Safe</option>
+            <option>Caution</option>
+            <option>Replace</option>
+          </select>
+        </div>
+        <div className="flex items-end">
+          <button className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800">
+            <span className="material-symbols-rounded text-[16px]">add</span>
+            Add DOT Code
+          </button>
+        </div>
+      </div>
+
+      <h4 className="mb-3 text-[13px] font-semibold text-slate-700">
+        Current DOT Codes
+      </h4>
+      <div className="grid gap-3 md:grid-cols-3">
+        {codes.map((c, i) => (
+          <div
+            key={i}
+            className="relative rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+          >
+            <button className="absolute right-2 top-2 text-red-400 hover:text-red-600">
+              <span className="material-symbols-rounded text-[16px]">
+                delete
+              </span>
+            </button>
+            <div className="flex items-center gap-1.5 mb-2">
+              <span
+                className={`material-symbols-rounded text-[16px] ${c.iconColor}`}
+              >
+                {c.icon}
+              </span>
+              <span className="font-bold text-slate-800">{c.code}</span>
+            </div>
+            <div className="text-[11px] text-slate-500">
+              Week {c.week}, {c.year}
+            </div>
+            <div className="text-[11px] text-slate-500 mb-2">
+              {c.age} years old
+            </div>
+            <span
+              className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${c.statusColor}`}
+            >
+              {c.status}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TireCodesTab() {
+  const codes = [
+    { code: "205/55R16", psi: 32 },
+    { code: "225/60R16", psi: 35 },
+    { code: "215/65R17", psi: 33 },
+    { code: "235/55R18", psi: 36 },
+    { code: "255/45R20", psi: 38 },
+  ];
+
+  return (
+    <div>
+      <h3 className="mb-4 text-[16px] font-medium text-slate-800">
+        Tire Code Database
+      </h3>
+
+      {/* Add Form */}
+      <div className="mb-6 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            Tire Code
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. 225/60R16"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">
+            Recommended PSI
+          </label>
+          <input
+            type="number"
+            placeholder="e.g. 35"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+          />
+        </div>
+        <div className="flex items-end">
+          <button className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800">
+            <span className="material-symbols-rounded text-[16px]">add</span>
+            Add Tire Code
+          </button>
+        </div>
+      </div>
+
+      <h4 className="mb-3 text-[13px] font-semibold text-slate-700">
+        Current Tire Codes
+      </h4>
+      <div className="grid gap-3 md:grid-cols-3">
+        {codes.map((c, i) => (
+          <div
+            key={i}
+            className="relative flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <button className="absolute bottom-2 text-red-400 hover:text-red-600">
+              <span className="material-symbols-rounded text-[16px]">
+                delete
+              </span>
+            </button>
+            <div className="text-[15px] font-bold text-slate-800">{c.code}</div>
+            <div className="text-[12px] text-slate-500">{c.psi} PSI</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsTab() {
+  return (
+    <div className="space-y-6">
+      {/* Security */}
+      <div>
+        <h3 className="mb-3 text-[16px] font-medium text-slate-800">
+          Security Settings
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-slate-700">
+              New Password
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                placeholder="Enter new password"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] pr-8"
+              />
+              <span className="material-symbols-rounded absolute right-2.5 top-2 text-[18px] text-slate-400">
+                visibility
+              </span>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-semibold text-slate-700">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
+            />
+          </div>
+        </div>
+        <button className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-[13px] font-medium text-white hover:bg-slate-800">
+          Change Password
+        </button>
+      </div>
+
+      {/* Service */}
+      <div>
+        <h3 className="mb-3 text-[16px] font-medium text-slate-800">
+          Service Settings
+        </h3>
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div>
+            <div className="text-[13px] font-bold text-slate-800">
+              DOT Code Check Service
+            </div>
+            <div className="text-[11px] text-slate-500">
+              Enable or disable the DOT code safety check feature
+            </div>
+          </div>
+          <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-900">
+            <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
