@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { parseDotCode, DotInfo } from "@/lib/dot-utils";
 
 // Sample data from the screenshot
 const SAMPLE_CODES = [
@@ -20,40 +21,9 @@ const SAMPLE_CODES = [
   "0514",
 ];
 
-type DotStatus = "SAFE" | "CAUTION" | "REPLACE";
-
-interface DotInfo {
-  code: string;
-  week: number;
-  year: number;
-  ageYears: number;
-  status: DotStatus;
-}
-
 export default function DotSelect() {
   const data: DotInfo[] = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentWeek = getWeekNumber(now);
-
-    return SAMPLE_CODES.map((code) => {
-      const wStr = code.substring(0, 2);
-      const yStr = code.substring(2, 4);
-      const week = parseInt(wStr, 10);
-      const year = 2000 + parseInt(yStr, 10); // Assuming 2000s
-
-      // Approximate age calculation
-      // Age = (CurrentYear - Year) + (CurrentWeek - Week) / 52
-      let age = currentYear - year + (currentWeek - week) / 52;
-      // Clamp to 1 decimal
-      age = Math.round(age * 10) / 10;
-
-      let status: DotStatus = "SAFE";
-      if (age > 10) status = "REPLACE";
-      else if (age > 6) status = "CAUTION";
-
-      return { code, week, year, ageYears: age, status };
-    });
+    return SAMPLE_CODES.map((code) => parseDotCode(code));
   }, []);
 
   return (
@@ -103,7 +73,12 @@ export default function DotSelect() {
           <div className="overflow-y-auto pr-1">
             <div className="grid grid-cols-3 gap-2">
               {data.map((item) => (
-                <Card key={item.code} item={item} />
+                <Link
+                  key={item.code}
+                  href={`/service/dot/result?code=${item.code}`}
+                >
+                  <Card item={item} />
+                </Link>
               ))}
             </div>
           </div>
@@ -169,13 +144,4 @@ function Card({ item }: { item: DotInfo }) {
       </span>
     </div>
   );
-}
-
-// Helper to get ISO week number
-function getWeekNumber(d: Date): number {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
