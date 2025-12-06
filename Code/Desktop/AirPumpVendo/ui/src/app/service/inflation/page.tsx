@@ -56,11 +56,17 @@ export default function InflationScreen() {
   // Choose a port from the enumerated list in a platform-agnostic way.
   const choosePortFromList = (ports: any[]): string | null => {
     if (!Array.isArray(ports) || ports.length === 0) return null;
-    const linuxUSB = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB"));
+    const linuxUSB = ports.find(
+      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB")
+    );
     if (linuxUSB) return linuxUSB.path;
-    const linuxACM = ports.find((p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM"));
+    const linuxACM = ports.find(
+      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM")
+    );
     if (linuxACM) return linuxACM.path;
-    const winCOM = ports.find((p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path));
+    const winCOM = ports.find(
+      (p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path)
+    );
     if (winCOM) return winCOM.path;
     return typeof ports[0].path === "string" ? ports[0].path : null;
   };
@@ -145,7 +151,11 @@ export default function InflationScreen() {
       }
 
       // Explicit completion keywords from Arduino (optional)
-      if (/(INFLATION\s*COMPLETE|INFLATE\s*COMPLETE|TARGET\s*REACHED|DONE)/i.test(raw)) {
+      if (
+        /(INFLATION\s*COMPLETE|INFLATE\s*COMPLETE|TARGET\s*REACHED|DONE)/i.test(
+          raw
+        )
+      ) {
         setCompleted(true);
         return;
       }
@@ -194,12 +204,15 @@ export default function InflationScreen() {
   };
 
   const progress = useMemo(() => {
-    if (!inflationStarted || !Number.isFinite(targetPsi) || targetPsi <= 0) return 0;
+    if (!inflationStarted || !Number.isFinite(targetPsi) || targetPsi <= 0)
+      return 0;
     const cp = currentPressure ?? 0;
     return Math.max(0, Math.min(100, Math.round((cp / targetPsi) * 100)));
   }, [inflationStarted, currentPressure, targetPsi]);
 
-  const backHref = `/service/tire/result?code=${encodeURIComponent(code)}&pos=${pos}&psi=${targetPsi}`;
+  const backHref = `/service/tire/result?code=${encodeURIComponent(
+    code
+  )}&pos=${pos}&psi=${targetPsi}`;
 
   return (
     <main className="h-dvh overflow-hidden p-3">
@@ -209,36 +222,60 @@ export default function InflationScreen() {
             href={backHref}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            <span className="material-symbols-rounded text-[16px]">arrow_back</span> Back
+            <span className="material-symbols-rounded text-[16px]">
+              arrow_back
+            </span>{" "}
+            Back
           </Link>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm grid grid-rows-[auto_1fr_auto_auto] gap-3">
+        <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm grid grid-rows-[auto_1fr_auto_auto] gap-2">
           <div className="text-center">
-            <div className="mb-2 grid place-items-center">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
-                <span className="material-symbols-rounded text-[22px]">speed</span>
+            <div className="mb-1 grid place-items-center">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
+                <span className="material-symbols-rounded text-[18px]">
+                  speed
+                </span>
               </span>
             </div>
-            <h1 className="text-[20px] font-semibold text-amber-700">Tire Inflation Service</h1>
-            <p className="text-[12px] text-slate-500">Follow the steps below</p>
-            <p className="mt-1 font-semibold text-slate-800">Target PSI: {targetPsi > 0 ? targetPsi : "—"}</p>
+            <h1 className="text-[18px] font-semibold text-amber-700">
+              Tire Inflation Service
+            </h1>
+            <p className="text-[11px] text-slate-500">Follow the steps below</p>
+            <p className="mt-0.5 font-semibold text-slate-800">
+              Target PSI: {targetPsi > 0 ? targetPsi : "—"}
+            </p>
           </div>
 
-          <div className="grid content-center gap-3">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-              <p className="mb-1.5 font-medium text-slate-800">Service Instructions</p>
-              <ul className="space-y-1 text-slate-700 text-[12px]">
-                <li><span className="font-semibold">Step 1:</span> Insert the total amount</li>
-                <li><span className="font-semibold">Step 2:</span> Connect the hose</li>
-                <li><span className="font-semibold">Step 3:</span> Tap Start to inflate</li>
-              </ul>
-            </div>
+          <div className="grid content-center gap-2">
+            {!inflationStarted && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="mb-1.5 font-medium text-slate-800">
+                  Service Instructions
+                </p>
+                <ul className="space-y-1 text-slate-700 text-[12px]">
+                  <li>
+                    <span className="font-semibold">Step 1:</span> Insert the
+                    total amount
+                  </li>
+                  <li>
+                    <span className="font-semibold">Step 2:</span> Connect the
+                    hose
+                  </li>
+                  <li>
+                    <span className="font-semibold">Step 3:</span> Tap Start to
+                    inflate
+                  </li>
+                </ul>
+              </div>
+            )}
 
             {step === "inflate" && inflationStarted && (
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="flex items-end justify-between">
-                  <div className="text-[12px] text-slate-500">Current Pressure</div>
+                  <div className="text-[12px] text-slate-500">
+                    Current Pressure
+                  </div>
                   <div className="text-[12px] text-slate-500">{progress}%</div>
                 </div>
                 <div className="mt-2 h-4 w-full rounded-md bg-slate-200 overflow-hidden">
@@ -248,9 +285,13 @@ export default function InflationScreen() {
                   />
                 </div>
                 <div className="mt-2 text-center text-[28px] leading-none font-bold text-slate-900 tracking-tight">
-                  {(currentPressure ?? 0)} <span className="text-[14px] font-semibold">PSI</span>
-                  <span className="mx-2 text-slate-400 text-[14px] font-normal">/</span>
-                  {Math.round(targetPsi)} <span className="text-[14px] font-semibold">PSI</span>
+                  {currentPressure ?? 0}{" "}
+                  <span className="text-[14px] font-semibold">PSI</span>
+                  <span className="mx-2 text-slate-400 text-[14px] font-normal">
+                    /
+                  </span>
+                  {Math.round(targetPsi)}{" "}
+                  <span className="text-[14px] font-semibold">PSI</span>
                 </div>
                 {completed && (
                   <p className="mt-2 text-center text-[12px] font-medium text-green-700">
@@ -265,7 +306,11 @@ export default function InflationScreen() {
             Total: ₱{total}
             <span className="mx-2 text-slate-400">•</span>
             Inserted:{" "}
-            <span className={inserted >= total ? "text-green-700" : "text-amber-700"}>
+            <span
+              className={
+                inserted >= total ? "text-green-700" : "text-amber-700"
+              }
+            >
               ₱{inserted}
             </span>
           </p>
@@ -284,21 +329,60 @@ export default function InflationScreen() {
 
           <div className="flex items-center justify-center gap-6 text-[12px]">
             <div className="flex items-center gap-2">
-              <span className={`h-3 w-3 rounded-full ${step !== "payment" ? "bg-green-600" : "bg-slate-300"}`} />
-              <span className={step === "payment" ? "text-green-700 font-medium" : "text-slate-500"}>Payment</span>
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  step !== "payment" ? "bg-green-600" : "bg-slate-300"
+                }`}
+              />
+              <span
+                className={
+                  step === "payment"
+                    ? "text-green-700 font-medium"
+                    : "text-slate-500"
+                }
+              >
+                Payment
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`h-3 w-3 rounded-full ${step === "inflate" || step === "connect" ? "bg-green-600" : "bg-slate-300"}`} />
-              <span className={step === "connect" ? "text-green-700 font-medium" : "text-slate-500"}>Connect</span>
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  step === "inflate" || step === "connect"
+                    ? "bg-green-600"
+                    : "bg-slate-300"
+                }`}
+              />
+              <span
+                className={
+                  step === "connect"
+                    ? "text-green-700 font-medium"
+                    : "text-slate-500"
+                }
+              >
+                Connect
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`h-3 w-3 rounded-full ${step === "inflate" ? "bg-green-600" : "bg-slate-300"}`} />
-              <span className={step === "inflate" ? "text-green-700 font-medium" : "text-slate-500"}>Inflate</span>
+              <span
+                className={`h-3 w-3 rounded-full ${
+                  step === "inflate" ? "bg-green-600" : "bg-slate-300"
+                }`}
+              />
+              <span
+                className={
+                  step === "inflate"
+                    ? "text-green-700 font-medium"
+                    : "text-slate-500"
+                }
+              >
+                Inflate
+              </span>
             </div>
           </div>
 
           <p className="text-center text-[11px] text-slate-500">
-            Code: <span className="font-mono">{code || "—"}</span> • Position: <span className="capitalize">{posLabel}</span>
+            Code: <span className="font-mono">{code || "—"}</span> • Position:{" "}
+            <span className="capitalize">{posLabel}</span>
           </p>
         </section>
       </div>
