@@ -1,7 +1,7 @@
 
 
 
-void PressureInflate() {
+void ReadPressureInflate() {
   unsigned long now = millis();
   if (now - lastReadTime >= READ_INTERVAL_MS) {
     lastReadTime = now;

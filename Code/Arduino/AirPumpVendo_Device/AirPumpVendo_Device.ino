@@ -5,7 +5,7 @@
  *              Handles communication with the desktop app, controls the air pump,
  *              and reads sensors (pressure, coin selector, etc.).
  * 
- * Author: NDMC 2025 Team
+ * Author: 
  * Date: 2025-12-05
  * 
  * Board: Arduino Uno / Nano / ESP32 (Check configuration)
@@ -49,6 +49,7 @@ unsigned long lastReadTime = 0;
 bool Inflating = false;
 float pressureBar = 0.0;
 float pressurePSI = 0.0;
+int pressurePSI_Int = 0;
 
 void coinPulseISR() {
   pulseCount++;
@@ -112,7 +113,7 @@ void loop() {
   SerialCOM();
 
   if (Vending) {
-    digitalWrite(LEDpin, 1);pok
+    digitalWrite(LEDpin, 1);
     delay(100);
     digitalWrite(LEDpin, 0);
     delay(100);
@@ -126,13 +127,23 @@ void loop() {
   }
 
   if (Inflating) {
+    InflateTire();
+  }
+}
+
+void InflateTire() {
+  while (1) {
     digitalWrite(SolenoidPin, 1);
-    PressureInflate();
-    int pressurePSI_Int = (int)(pressurePSI);
+    delay(1500);
+    digitalWrite(SolenoidPin, 0);
+    delay(600);
+    ReadPressureInflate();
+    pressurePSI_Int = (int)(pressurePSI);
     Serial.println("PRESSURE:" + String(pressurePSI_Int));
     if (pressurePSI_Int >= TargetPressure) {
       Inflating = false;
       digitalWrite(SolenoidPin, 0);
+      break;
     }
   }
 }
