@@ -5,8 +5,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-
-const TOTAL = 30;
+import { useSettings } from "@/lib/settings-context";
 
 // Prefer Linux USB/ACM, then Windows COM, then first port
 const choosePortFromList = (ports: any[]): string | null => {
@@ -27,6 +26,8 @@ const choosePortFromList = (ports: any[]): string | null => {
 };
 
 export default function DotService() {
+  const { settings } = useSettings();
+  const TOTAL = settings.prices.dotCheck;
   const sentOnceRef = useRef(false);
   const [inserted, setInserted] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean>(false);
@@ -60,7 +61,7 @@ export default function DotService() {
     return true;
   };
 
-  // Send "PAYMENT:30" once when this screen is shown
+  // Send "PAYMENT:TOTAL" once when this screen is shown
   const sendPayment = async () => {
     const api = (window as any)?.electronAPI;
     if (!api) return;
@@ -78,7 +79,7 @@ export default function DotService() {
     sentOnceRef.current = true;
     void sendPayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [TOTAL]);
 
   // Serial listener
   useEffect(() => {
@@ -157,11 +158,7 @@ export default function DotService() {
               <ul className="space-y-1 text-[13px]">
                 <li className="flex justify-between">
                   <span>DOT Code Safety Check</span>
-                  <span className="font-medium">₱15</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>System & Processing Fee</span>
-                  <span className="font-medium">₱15</span>
+                  <span className="font-medium">₱{TOTAL}</span>
                 </li>
               </ul>
               <div className="mt-2 border-t border-slate-200 pt-1.5 flex justify-between text-[13px] font-semibold">

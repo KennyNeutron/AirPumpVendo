@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useSettings, Settings } from "@/lib/settings-context";
 
 type Tab = "analytics" | "pricing" | "dot" | "tire" | "settings";
 
@@ -104,6 +105,8 @@ function TabButton({
 /* -------------------- TABS -------------------- */
 
 function AnalyticsTab() {
+  const { settings } = useSettings();
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
@@ -132,25 +135,25 @@ function AnalyticsTab() {
             <li className="flex justify-between">
               <span className="text-slate-500">Total Tire Codes:</span>
               <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
-                5
+                {settings.tireCodes.length}
               </span>
             </li>
             <li className="flex justify-between">
               <span className="text-slate-500">Total DOT Codes:</span>
               <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
-                10
+                {settings.dotCodes.length}
               </span>
             </li>
             <li className="flex justify-between items-center">
               <span className="text-slate-500">DOT Check Status:</span>
               <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
-                Enabled
+                {settings.services.dotCheckEnabled ? "Enabled" : "Disabled"}
               </span>
             </li>
             <li className="flex justify-between">
               <span className="text-slate-500">Services Available:</span>
               <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
-                3
+                {settings.services.dotCheckEnabled ? 3 : 2}
               </span>
             </li>
           </ul>
@@ -184,15 +187,41 @@ function ActionButton({ icon, label }: { icon: string; label: string }) {
 }
 
 function PricingTab() {
+  const { settings, updateSettings } = useSettings();
+
+  const handleChange = (key: keyof Settings["prices"], value: string) => {
+    const num = parseInt(value, 10);
+    if (!isNaN(num) && num >= 0) {
+      updateSettings({
+        prices: {
+          ...settings.prices,
+          [key]: num,
+        },
+      });
+    }
+  };
+
   return (
     <div>
       <h3 className="mb-4 text-[16px] font-medium text-slate-800">
         Service Pricing (₱)
       </h3>
       <div className="grid gap-4 md:grid-cols-3">
-        <InputGroup label="Tire Code Info" defaultValue="10" />
-        <InputGroup label="DOT Code Check" defaultValue="15" />
-        <InputGroup label="Tire Inflation" defaultValue="20" />
+        <InputGroup
+          label="Tire Code Info"
+          value={settings.prices.tireInfo}
+          onChange={(v) => handleChange("tireInfo", v)}
+        />
+        <InputGroup
+          label="DOT Code Check"
+          value={settings.prices.dotCheck}
+          onChange={(v) => handleChange("dotCheck", v)}
+        />
+        <InputGroup
+          label="Tire Inflation"
+          value={settings.prices.inflation}
+          onChange={(v) => handleChange("inflation", v)}
+        />
       </div>
     </div>
   );
@@ -200,10 +229,12 @@ function PricingTab() {
 
 function InputGroup({
   label,
-  defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
-  defaultValue: string;
+  value: number;
+  onChange: (val: string) => void;
 }) {
   return (
     <div>
@@ -212,7 +243,8 @@ function InputGroup({
       </label>
       <input
         type="number"
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[14px] font-medium text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
     </div>
@@ -220,69 +252,18 @@ function InputGroup({
 }
 
 function DotCodesTab() {
-  // Mock data
-  const codes = [
-    {
-      code: "1017",
-      week: 10,
-      year: 2017,
-      age: 7.8,
-      status: "WARNING",
-      statusColor: "bg-amber-100 text-amber-700",
-      icon: "warning",
-      iconColor: "text-amber-500",
-    },
-    {
-      code: "1021",
-      week: 10,
-      year: 2021,
-      age: 3.8,
-      status: "SAFE",
-      statusColor: "bg-emerald-100 text-emerald-700",
-      icon: "check_circle",
-      iconColor: "text-emerald-500",
-    },
-    {
-      code: "2018",
-      week: 20,
-      year: 2018,
-      age: 6.5,
-      status: "WARNING",
-      statusColor: "bg-amber-100 text-amber-700",
-      icon: "warning",
-      iconColor: "text-amber-500",
-    },
-    {
-      code: "2023",
-      week: 20,
-      year: 2023,
-      age: 1.5,
-      status: "SAFE",
-      statusColor: "bg-emerald-100 text-emerald-700",
-      icon: "check_circle",
-      iconColor: "text-emerald-500",
-    },
-    {
-      code: "2212",
-      week: 22,
-      year: 2012,
-      age: 12.5,
-      status: "REPLACE",
-      statusColor: "bg-red-100 text-red-700",
-      icon: "error",
-      iconColor: "text-red-500",
-    },
-    {
-      code: "3015",
-      week: 30,
-      year: 2015,
-      age: 9.2,
-      status: "WARNING",
-      statusColor: "bg-amber-100 text-amber-700",
-      icon: "warning",
-      iconColor: "text-amber-500",
-    },
-  ];
+  const { settings, addDotCode, removeDotCode } = useSettings();
+  const [newCode, setNewCode] = useState("");
+  const [newYear, setNewYear] = useState("");
+  const [newWeek, setNewWeek] = useState("");
+
+  const handleAdd = () => {
+    if (!newCode || !newYear || !newWeek) return;
+    addDotCode(newCode, parseInt(newWeek), parseInt(newYear));
+    setNewCode("");
+    setNewYear("");
+    setNewWeek("");
+  };
 
   return (
     <div>
@@ -299,6 +280,8 @@ function DotCodesTab() {
           <input
             type="text"
             placeholder="e.g. 0718"
+            value={newCode}
+            onChange={(e) => setNewCode(e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
           />
         </div>
@@ -307,8 +290,10 @@ function DotCodesTab() {
             Year
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="e.g. 2018"
+            value={newYear}
+            onChange={(e) => setNewYear(e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
           />
         </div>
@@ -317,8 +302,10 @@ function DotCodesTab() {
             Week
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="e.g. 7"
+            value={newWeek}
+            onChange={(e) => setNewWeek(e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
           />
         </div>
@@ -326,14 +313,18 @@ function DotCodesTab() {
           <label className="mb-1 block text-[11px] font-medium text-slate-500">
             Status
           </label>
-          <select className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]">
-            <option>Safe</option>
-            <option>Caution</option>
-            <option>Replace</option>
+          <select
+            disabled
+            className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-[13px] text-slate-500 cursor-not-allowed"
+          >
+            <option>Auto-calculated</option>
           </select>
         </div>
         <div className="flex items-end">
-          <button className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800">
+          <button
+            onClick={handleAdd}
+            className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800"
+          >
             <span className="material-symbols-rounded text-[16px]">add</span>
             Add DOT Code
           </button>
@@ -344,50 +335,72 @@ function DotCodesTab() {
         Current DOT Codes
       </h4>
       <div className="grid gap-3 md:grid-cols-3">
-        {codes.map((c, i) => (
-          <div
-            key={i}
-            className="relative rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-          >
-            <button className="absolute right-2 top-2 text-red-400 hover:text-red-600">
-              <span className="material-symbols-rounded text-[16px]">
-                delete
-              </span>
-            </button>
-            <div className="flex items-center gap-1.5 mb-2">
-              <span
-                className={`material-symbols-rounded text-[16px] ${c.iconColor}`}
-              >
-                {c.icon}
-              </span>
-              <span className="font-bold text-slate-800">{c.code}</span>
-            </div>
-            <div className="text-[11px] text-slate-500">
-              Week {c.week}, {c.year}
-            </div>
-            <div className="text-[11px] text-slate-500 mb-2">
-              {c.age} years old
-            </div>
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${c.statusColor}`}
+        {settings.dotCodes.map((c) => {
+          let statusColor = "bg-emerald-100 text-emerald-700";
+          let icon = "check_circle";
+          let iconColor = "text-emerald-500";
+
+          if (c.status === "CAUTION") {
+            statusColor = "bg-amber-100 text-amber-700";
+            icon = "warning";
+            iconColor = "text-amber-500";
+          } else if (c.status === "REPLACE") {
+            statusColor = "bg-red-100 text-red-700";
+            icon = "error";
+            iconColor = "text-red-500";
+          }
+
+          return (
+            <div
+              key={c.code}
+              className="relative rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
             >
-              {c.status}
-            </span>
-          </div>
-        ))}
+              <button
+                onClick={() => removeDotCode(c.code)}
+                className="absolute right-2 top-2 text-red-400 hover:text-red-600"
+              >
+                <span className="material-symbols-rounded text-[16px]">
+                  delete
+                </span>
+              </button>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span
+                  className={`material-symbols-rounded text-[16px] ${iconColor}`}
+                >
+                  {icon}
+                </span>
+                <span className="font-bold text-slate-800">{c.code}</span>
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Week {c.week}, {c.year}
+              </div>
+              <div className="text-[11px] text-slate-500 mb-2">
+                {c.ageYears} years old
+              </div>
+              <span
+                className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${statusColor}`}
+              >
+                {c.status}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 function TireCodesTab() {
-  const codes = [
-    { code: "205/55R16", psi: 32 },
-    { code: "225/60R16", psi: 35 },
-    { code: "215/65R17", psi: 33 },
-    { code: "235/55R18", psi: 36 },
-    { code: "255/45R20", psi: 38 },
-  ];
+  const { settings, addTireCode, removeTireCode } = useSettings();
+  const [newCode, setNewCode] = useState("");
+  const [newPsi, setNewPsi] = useState("");
+
+  const handleAdd = () => {
+    if (!newCode || !newPsi) return;
+    addTireCode(newCode, parseInt(newPsi));
+    setNewCode("");
+    setNewPsi("");
+  };
 
   return (
     <div>
@@ -404,6 +417,8 @@ function TireCodesTab() {
           <input
             type="text"
             placeholder="e.g. 225/60R16"
+            value={newCode}
+            onChange={(e) => setNewCode(e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
           />
         </div>
@@ -414,11 +429,16 @@ function TireCodesTab() {
           <input
             type="number"
             placeholder="e.g. 35"
+            value={newPsi}
+            onChange={(e) => setNewPsi(e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
           />
         </div>
         <div className="flex items-end">
-          <button className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800">
+          <button
+            onClick={handleAdd}
+            className="flex h-[38px] items-center gap-1 rounded-lg bg-slate-900 px-4 text-[13px] font-medium text-white hover:bg-slate-800"
+          >
             <span className="material-symbols-rounded text-[16px]">add</span>
             Add Tire Code
           </button>
@@ -429,12 +449,15 @@ function TireCodesTab() {
         Current Tire Codes
       </h4>
       <div className="grid gap-3 md:grid-cols-3">
-        {codes.map((c, i) => (
+        {settings.tireCodes.map((c) => (
           <div
-            key={i}
+            key={c.code}
             className="relative flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
           >
-            <button className="absolute bottom-2 text-red-400 hover:text-red-600">
+            <button
+              onClick={() => removeTireCode(c.code)}
+              className="absolute bottom-2 text-red-400 hover:text-red-600"
+            >
               <span className="material-symbols-rounded text-[16px]">
                 delete
               </span>
@@ -449,6 +472,17 @@ function TireCodesTab() {
 }
 
 function SettingsTab() {
+  const { settings, updateSettings } = useSettings();
+
+  const toggleDotCheck = () => {
+    updateSettings({
+      services: {
+        ...settings.services,
+        dotCheckEnabled: !settings.services.dotCheckEnabled,
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Security */}
@@ -502,9 +536,22 @@ function SettingsTab() {
               Enable or disable the DOT code safety check feature
             </div>
           </div>
-          <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-900">
-            <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-          </div>
+          <button
+            onClick={toggleDotCheck}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+              settings.services.dotCheckEnabled
+                ? "bg-slate-900"
+                : "bg-slate-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                settings.services.dotCheckEnabled
+                  ? "translate-x-6"
+                  : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
       </div>
     </div>

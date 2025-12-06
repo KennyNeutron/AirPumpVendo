@@ -9,15 +9,15 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getPsiPair } from "@/lib/tire-data";
+import { getPsiPair, normalizeCode } from "@/lib/tire-data";
+import { useSettings } from "@/lib/settings-context";
 
-const INFO_COST = 10;
-const INFLATION_COST = 20;
 type Step = "payment" | "connect" | "inflate";
 
 export default function InflationScreen() {
   const router = useRouter();
   const sp = useSearchParams();
+  const { settings } = useSettings();
   const code = sp.get("code") ?? "";
   const pos = (sp.get("pos") === "rear" ? "rear" : "front") as "front" | "rear";
   const psiFromQuery = sp.get("psi");
@@ -25,10 +25,20 @@ export default function InflationScreen() {
   const targetPsi = useMemo(() => {
     const q = psiFromQuery ? parseInt(psiFromQuery, 10) : NaN;
     if (!Number.isNaN(q) && q > 0) return q;
+
+    // Check built-in
     const pair = getPsiPair(code);
-    if (!pair) return 0;
-    return pos === "front" ? pair.front : pair.rear;
-  }, [psiFromQuery, code, pos]);
+    if (pair) return pos === "front" ? pair.front : pair.rear;
+
+    // Check custom settings
+    const norm = normalizeCode(code);
+    const custom = settings.tireCodes.find(
+      (c) => normalizeCode(c.code) === norm
+    );
+    if (custom) return custom.psi;
+
+    return 0;
+  }, [psiFromQuery, code, pos, settings.tireCodes]);
 
   const [step, setStep] = useState<Step>("payment");
   const [inserted, setInserted] = useState<number>(0);
@@ -36,7 +46,7 @@ export default function InflationScreen() {
   const [currentPressure, setCurrentPressure] = useState<number | null>(null);
   const [completed, setCompleted] = useState<boolean>(false);
 
-  const total = INFO_COST + INFLATION_COST;
+  const total = settings.prices.tireInfo + settings.prices.inflation;
   const posLabel = pos === "front" ? "Front" : "Rear";
 
   const label =

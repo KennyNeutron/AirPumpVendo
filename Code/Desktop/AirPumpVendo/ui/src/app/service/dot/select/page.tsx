@@ -4,27 +4,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { parseDotCode, DotInfo } from "@/lib/dot-utils";
-
-// Sample data from the screenshot
-const SAMPLE_CODES = [
-  "1017",
-  "1021",
-  "2018",
-  "2023",
-  "2212",
-  "3015",
-  "3522",
-  "4519",
-  "0124",
-  "0514",
-];
+import { useSettings } from "@/lib/settings-context";
+import { DotInfo } from "@/lib/dot-utils";
 
 export default function DotSelect() {
-  const data: DotInfo[] = useMemo(() => {
-    return SAMPLE_CODES.map((code) => parseDotCode(code));
-  }, []);
+  const { settings } = useSettings();
+  const data = settings.dotCodes;
 
   return (
     <main className="h-dvh overflow-hidden bg-slate-50 p-2">
@@ -61,7 +46,7 @@ export default function DotSelect() {
             </p>
             <div className="mt-1.5">
               <span className="text-[12px] font-medium text-slate-700">
-                Service Cost: ₱15
+                Service Cost: ₱{settings.prices.dotCheck}
               </span>
               <p className="text-[10px] text-slate-400">
                 Select your DOT code to check tire safety

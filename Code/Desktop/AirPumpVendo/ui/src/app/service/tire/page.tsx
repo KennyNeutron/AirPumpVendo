@@ -3,18 +3,23 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isSupportedCode } from "@/lib/tire-data";
+import { isSupportedCode, normalizeCode } from "@/lib/tire-data";
+import { useSettings } from "@/lib/settings-context";
 
 export default function TireService() {
   const router = useRouter();
+  const { settings } = useSettings();
   const [code, setCode] = useState("");
   const [pos, setPos] = useState<"front" | "rear">("front");
   const [error, setError] = useState<string | null>(null);
 
-  const valid = useMemo(
-    () => code.trim().length > 0 && isSupportedCode(code),
-    [code]
-  );
+  const valid = useMemo(() => {
+    const norm = normalizeCode(code);
+    if (norm.length === 0) return false;
+    // Check built-in or custom settings
+    if (isSupportedCode(norm)) return true;
+    return settings.tireCodes.some((c) => normalizeCode(c.code) === norm);
+  }, [code, settings.tireCodes]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +64,8 @@ export default function TireService() {
               Enter code & position to get recommended PSI
             </p>
             <p className="mt-1 text-[12px] text-slate-600">
-              <span className="font-semibold">Service Cost:</span> ₱10
+              <span className="font-semibold">Service Cost:</span> ₱
+              {settings.prices.tireInfo}
             </p>
           </div>
 

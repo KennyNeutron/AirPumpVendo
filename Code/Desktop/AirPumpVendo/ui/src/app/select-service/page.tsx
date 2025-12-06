@@ -1,6 +1,15 @@
+// File: ui/app/select-service/page.tsx
+// Path: ui/app/select-service/page.tsx
+
+"use client";
+
 import Link from "next/link";
+import { useSettings } from "@/lib/settings-context";
 
 export default function SelectService() {
+  const { settings } = useSettings();
+  const { prices, services } = settings;
+
   return (
     <main className="h-dvh overflow-hidden p-3">
       <div className="mx-auto w-full max-w-[800px] h-full grid grid-rows-[auto_1fr] gap-3">
@@ -46,29 +55,33 @@ export default function SelectService() {
               Get recommended PSI and optional inflation
             </p>
             <p className="mt-1 text-center text-[12px] text-slate-500">
-              ₱10 (Info) + ₱20 (Inflation)
+              ₱{prices.tireInfo} (Info) + ₱{prices.inflation} (Inflation)
             </p>
           </Link>
 
-          <Link
-            href="/service/dot"
-            className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition"
-          >
-            <div className="mb-2 flex items-center justify-center">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 text-green-600">
-                <span className="material-symbols-rounded text-[24px]">
-                  shield
+          {services.dotCheckEnabled && (
+            <Link
+              href="/service/dot"
+              className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition"
+            >
+              <div className="mb-2 flex items-center justify-center">
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20 text-green-600">
+                  <span className="material-symbols-rounded text-[24px]">
+                    shield
+                  </span>
                 </span>
-              </span>
-            </div>
-            <h2 className="mb-0.5 text-center text-[18px] font-semibold text-green-700">
-              DOT Code Safety Check
-            </h2>
-            <p className="mx-auto max-w-[36ch] text-center text-[12px] text-slate-600">
-              Check tire manufacture date and safety
-            </p>
-            <p className="mt-1 text-center text-[12px] text-slate-500">₱15</p>
-          </Link>
+              </div>
+              <h2 className="mb-0.5 text-center text-[18px] font-semibold text-green-700">
+                DOT Code Safety Check
+              </h2>
+              <p className="mx-auto max-w-[36ch] text-center text-[12px] text-slate-600">
+                Check tire manufacture date and safety
+              </p>
+              <p className="mt-1 text-center text-[12px] text-slate-500">
+                ₱{prices.dotCheck}
+              </p>
+            </Link>
+          )}
         </section>
       </div>
     </main>

@@ -1,3 +1,4 @@
+import { SettingsProvider } from "@/lib/settings-context";
 import "./globals.css";
 
 export const metadata = {
@@ -19,7 +20,7 @@ export default function RootLayout({
         />
       </head>
       <body className="h-dvh overflow-hidden bg-gradient-to-b from-slate-100 to-slate-200 text-slate-900 antialiased">
-        {children}
+        <SettingsProvider>{children}</SettingsProvider>
       </body>
     </html>
   );
