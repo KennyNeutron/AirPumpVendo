@@ -122,6 +122,7 @@ void loop() {
       if (totalCredit >= Payable) {
         Serial.println("PAYMENT COMPLETE");
         Vending = false;
+        totalCredit=0;
       }
     }
   }
