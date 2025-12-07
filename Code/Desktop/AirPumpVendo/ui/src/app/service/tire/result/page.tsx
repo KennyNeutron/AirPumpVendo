@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPsiPair, normalizeCode } from "@/lib/tire-data";
 import { useSettings } from "@/lib/settings-context";
+import { useTransactions } from "@/lib/transaction-context";
 
 export default function TireResult() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { settings } = useSettings();
+  const { addTransaction } = useTransactions();
+  const recorded = useRef(false);
   const [data, setData] = useState<{
     code: string;
     pos: "front" | "rear";
@@ -37,6 +40,15 @@ export default function TireResult() {
           ? "Front tires use 2 PSI less for better steering and road contact."
           : "Rear tires use 2 PSI more to better support load weight.";
       setData({ code, pos, psi: recommended, why });
+
+      if (!recorded.current) {
+        recorded.current = true;
+        addTransaction(
+          "TIRE_INFO",
+          settings.prices.tireInfo,
+          `${code} (${pos})`
+        );
+      }
       return;
     }
 
@@ -53,12 +65,27 @@ export default function TireResult() {
         psi: custom.psi,
         why: "Custom PSI setting applied from device configuration.",
       });
+
+      if (!recorded.current) {
+        recorded.current = true;
+        addTransaction(
+          "TIRE_INFO",
+          settings.prices.tireInfo,
+          `${custom.code} (${pos})`
+        );
+      }
       return;
     }
 
     // 3. Not found
     router.replace("/service/tire");
-  }, [searchParams, settings.tireCodes, router]);
+  }, [
+    searchParams,
+    settings.tireCodes,
+    settings.prices.tireInfo,
+    router,
+    addTransaction,
+  ]);
 
   if (!data) return null; // or a loading spinner
 

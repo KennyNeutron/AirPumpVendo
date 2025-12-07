@@ -5,15 +5,27 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { parseDotCode } from "@/lib/dot-utils";
+import { useSettings } from "@/lib/settings-context";
+import { useTransactions } from "@/lib/transaction-context";
 
 export default function DotResult() {
   const sp = useSearchParams();
   const code = sp.get("code") ?? "0000";
+  const { settings } = useSettings();
+  const { addTransaction } = useTransactions();
+  const recorded = useRef(false);
 
   const info = useMemo(() => parseDotCode(code), [code]);
   const { status, week, year, ageYears } = info;
+
+  useEffect(() => {
+    if (!recorded.current) {
+      recorded.current = true;
+      addTransaction("DOT_CHECK", settings.prices.dotCheck, `DOT ${code}`);
+    }
+  }, [code, settings.prices.dotCheck, addTransaction]);
 
   // Theme configuration based on status
   let theme = {

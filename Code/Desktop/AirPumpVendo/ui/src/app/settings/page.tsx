@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSettings, Settings } from "@/lib/settings-context";
+import { useTransactions } from "@/lib/transaction-context";
 
 type Tab = "analytics" | "pricing" | "dot" | "tire" | "settings";
 
@@ -177,6 +178,8 @@ function TabButton({
 
 function AnalyticsTab() {
   const { settings } = useSettings();
+  const { getWeeklyRevenue, resetTransactions } = useTransactions();
+  const weeklyRevenue = getWeeklyRevenue();
 
   return (
     <div className="space-y-4">
@@ -187,12 +190,17 @@ function AnalyticsTab() {
             Weekly Revenue
           </h3>
           <div className="text-center">
-            <div className="text-[32px] font-bold text-slate-900">₱0</div>
+            <div className="text-[32px] font-bold text-slate-900">
+              ₱{weeklyRevenue.toLocaleString()}
+            </div>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
               This Week
             </span>
           </div>
-          <button className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50">
+          <button
+            onClick={resetTransactions}
+            className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50"
+          >
             Reset Weekly Total
           </button>
         </div>
@@ -237,18 +245,52 @@ function AnalyticsTab() {
           Quick Actions
         </h3>
         <div className="grid gap-3 md:grid-cols-3">
-          <ActionButton icon="database" label="Export Data" />
-          <ActionButton icon="settings" label="System Settings" />
-          <ActionButton icon="attach_money" label="Financial Report" />
+          <ActionButton
+            icon="database"
+            label="Export Data"
+            onClick={() => {
+              // Placeholder for export
+              console.log("Export requested");
+              alert("Data export feature coming soon.");
+            }}
+          />
+          <Link href="/settings" onClick={() => {}} className="contents">
+            <button className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50">
+              <span className="material-symbols-rounded text-[20px] text-slate-600">
+                settings
+              </span>
+              <span className="text-[12px] font-medium text-slate-700">
+                System Settings
+              </span>
+            </button>
+          </Link>
+          <ActionButton
+            icon="attach_money"
+            label="Financial Report"
+            onClick={() => {
+              alert("Financial report feature coming soon.");
+            }}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function ActionButton({ icon, label }: { icon: string; label: string }) {
+function ActionButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  onClick?: () => void;
+}) {
   return (
-    <button className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50">
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50"
+    >
       <span className="material-symbols-rounded text-[20px] text-slate-600">
         {icon}
       </span>

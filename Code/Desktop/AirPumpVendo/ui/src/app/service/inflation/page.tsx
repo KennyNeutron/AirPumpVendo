@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getPsiPair, normalizeCode } from "@/lib/tire-data";
 import { useSettings } from "@/lib/settings-context";
+import { useTransactions } from "@/lib/transaction-context";
 
 type Step = "payment" | "connect" | "inflate";
 
@@ -18,6 +19,8 @@ export default function InflationScreen() {
   const router = useRouter();
   const sp = useSearchParams();
   const { settings } = useSettings();
+  const { addTransaction } = useTransactions();
+  const recorded = useRef(false);
   const code = sp.get("code") ?? "";
   const pos = (sp.get("pos") === "rear" ? "rear" : "front") as "front" | "rear";
   const psiFromQuery = sp.get("psi");
@@ -192,6 +195,16 @@ export default function InflationScreen() {
       setInflationStarted(true);
       setCurrentPressure(0);
       setCompleted(false);
+
+      if (!recorded.current) {
+        recorded.current = true;
+        addTransaction(
+          "INFLATION",
+          settings.prices.inflation,
+          `Target: ${targetPsi} PSI`
+        );
+      }
+
       await api.serialWrite?.(`INFLATE:${Math.round(targetPsi)}`);
     } catch (e) {
       console.warn("INFLATE send failed:", e);
