@@ -122,7 +122,7 @@ void loop() {
       if (totalCredit >= Payable) {
         Serial.println("PAYMENT COMPLETE");
         Vending = false;
-        totalCredit=0;
+        totalCredit = 0;
       }
     }
   }
@@ -135,11 +135,21 @@ void loop() {
 void InflateTire() {
   while (1) {
     digitalWrite(SolenoidPin, 1);
-    delay(1500);
-    digitalWrite(SolenoidPin, 0);
     delay(600);
+    while (pressurePSI_Int < TargetPressure) {
+      ReadPressureInflate();
+      pressurePSI_Int = (int)(pressurePSI);
+    }
+
+    digitalWrite(SolenoidPin, 0);
+    while (pressurePSI_Int > TargetPressure) {
+      ReadPressureInflate();
+      pressurePSI_Int = (int)(pressurePSI);
+    }
+
     ReadPressureInflate();
     pressurePSI_Int = (int)(pressurePSI);
+
     Serial.println("PRESSURE:" + String(pressurePSI_Int));
     if (pressurePSI_Int >= TargetPressure) {
       Inflating = false;
