@@ -10,7 +10,78 @@ import { useSettings, Settings } from "@/lib/settings-context";
 type Tab = "analytics" | "pricing" | "dot" | "tire" | "settings";
 
 export default function AdminPanel() {
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState<Tab>("analytics");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === settings.password) {
+      setIsAuthenticated(true);
+      setError(false);
+    } else {
+      setError(true);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="flex h-dvh w-full items-center justify-center bg-slate-50 p-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm border border-slate-100">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white">
+              <span className="material-symbols-rounded">lock</span>
+            </div>
+            <h1 className="text-xl font-bold text-slate-800">Admin Access</h1>
+            <p className="text-[13px] text-slate-500">
+              Enter password to continue
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => {
+                  setPasswordInput(e.target.value);
+                  setError(false);
+                }}
+                placeholder="Password"
+                className={`w-full rounded-lg border px-4 py-2.5 text-[14px] outline-none transition ${
+                  error
+                    ? "border-red-300 bg-red-50 text-red-900 placeholder:text-red-300 focus:border-red-500"
+                    : "border-slate-200 bg-slate-50 text-slate-900 focus:border-slate-400 focus:bg-white"
+                }`}
+                autoFocus
+              />
+              {error && (
+                <p className="mt-1.5 text-center text-[12px] font-medium text-red-600">
+                  Incorrect password
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-slate-900 py-2.5 text-[14px] font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98]"
+            >
+              Unlock Settings
+            </button>
+            <div className="mt-4 text-center">
+              <Link
+                href="/"
+                className="text-[12px] font-medium text-slate-500 hover:text-slate-800"
+              >
+                Cancel & Return Home
+              </Link>
+            </div>
+          </form>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="h-dvh overflow-hidden bg-slate-50 p-3">
@@ -18,13 +89,13 @@ export default function AdminPanel() {
         {/* Header */}
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-slate-800">Admin Panel</h1>
-          <Link
-            href="/"
+          <button
+            onClick={() => setIsAuthenticated(false)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
             <span className="material-symbols-rounded text-[16px]">logout</span>
             Logout
-          </Link>
+          </button>
         </header>
 
         {/* Tabs */}
@@ -473,6 +544,9 @@ function TireCodesTab() {
 
 function SettingsTab() {
   const { settings, updateSettings } = useSettings();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [msg, setMsg] = useState("");
 
   const toggleDotCheck = () => {
     updateSettings({
@@ -481,6 +555,18 @@ function SettingsTab() {
         dotCheckEnabled: !settings.services.dotCheckEnabled,
       },
     });
+  };
+
+  const changePassword = () => {
+    if (!newPassword || newPassword !== confirmPassword) {
+      setMsg("Passwords do not match");
+      return;
+    }
+    updateSettings({ password: newPassword });
+    setNewPassword("");
+    setConfirmPassword("");
+    setMsg("Password updated successfully");
+    setTimeout(() => setMsg(""), 3000);
   };
 
   return (
@@ -499,10 +585,12 @@ function SettingsTab() {
               <input
                 type="password"
                 placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] pr-8"
               />
               <span className="material-symbols-rounded absolute right-2.5 top-2 text-[18px] text-slate-400">
-                visibility
+                lock
               </span>
             </div>
           </div>
@@ -513,13 +601,29 @@ function SettingsTab() {
             <input
               type="password"
               placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px]"
             />
           </div>
         </div>
-        <button className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-[13px] font-medium text-white hover:bg-slate-800">
-          Change Password
-        </button>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={changePassword}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-[13px] font-medium text-white hover:bg-slate-800"
+          >
+            Change Password
+          </button>
+          {msg && (
+            <span
+              className={`text-[12px] font-medium ${
+                msg.includes("success") ? "text-emerald-600" : "text-red-600"
+              }`}
+            >
+              {msg}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Service */}

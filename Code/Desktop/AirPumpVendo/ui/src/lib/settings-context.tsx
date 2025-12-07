@@ -12,6 +12,7 @@ export interface TireCode {
 }
 
 export interface Settings {
+  password?: string;
   prices: {
     tireInfo: number;
     dotCheck: number;
@@ -25,6 +26,7 @@ export interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
+  password: "Admin123",
   prices: {
     tireInfo: 10,
     dotCheck: 15,
@@ -76,7 +78,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("app-settings");
     if (saved) {
       try {
-        setSettings(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Merge with default settings to ensure new fields (like password) exist
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) {
         console.error("Failed to parse settings", e);
       }
