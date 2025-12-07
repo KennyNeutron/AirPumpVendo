@@ -1,28 +1,68 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getPsiPair } from "@/lib/tire-data";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getPsiPair, normalizeCode } from "@/lib/tire-data";
+import { useSettings } from "@/lib/settings-context";
 
-type SearchParams = Promise<{ code?: string; pos?: "front" | "rear" }>;
+export default function TireResult() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { settings } = useSettings();
+  const [data, setData] = useState<{
+    code: string;
+    pos: "front" | "rear";
+    psi: number;
+    why: string;
+  } | null>(null);
 
-export default async function TireResult({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const sp = await searchParams;
-  const raw = (sp.code ?? "").trim();
-  const pos = (sp.pos === "rear" ? "rear" : "front") as "front" | "rear";
-  if (!raw) redirect("/service/tire");
+  useEffect(() => {
+    const code = (searchParams.get("code") ?? "").trim();
+    const pos = (searchParams.get("pos") === "rear" ? "rear" : "front") as
+      | "front"
+      | "rear";
 
-  const pair = getPsiPair(raw);
-  if (!pair) redirect("/service/tire");
+    if (!code) {
+      router.replace("/service/tire");
+      return;
+    }
 
-  const recommended = pos === "front" ? pair.front : pair.rear;
-  const posLabel = pos === "front" ? "Front Tire" : "Rear Tire";
-  const why =
-    pos === "front"
-      ? "Front tires use 2 PSI less for better steering and road contact."
-      : "Rear tires use 2 PSI more to better support load weight.";
+    // 1. Try static data
+    const pair = getPsiPair(code);
+    if (pair) {
+      const recommended = pos === "front" ? pair.front : pair.rear;
+      const why =
+        pos === "front"
+          ? "Front tires use 2 PSI less for better steering and road contact."
+          : "Rear tires use 2 PSI more to better support load weight.";
+      setData({ code, pos, psi: recommended, why });
+      return;
+    }
+
+    // 2. Try dynamic settings
+    const normalized = normalizeCode(code);
+    const custom = settings.tireCodes.find(
+      (c) => normalizeCode(c.code) === normalized
+    );
+
+    if (custom) {
+      setData({
+        code: custom.code,
+        pos,
+        psi: custom.psi,
+        why: "Custom PSI setting applied from device configuration.",
+      });
+      return;
+    }
+
+    // 3. Not found
+    router.replace("/service/tire");
+  }, [searchParams, settings.tireCodes, router]);
+
+  if (!data) return null; // or a loading spinner
+
+  const posLabel = data.pos === "front" ? "Front Tire" : "Rear Tire";
 
   return (
     <main className="h-dvh overflow-hidden p-3">
@@ -70,7 +110,9 @@ export default async function TireResult({
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white p-3">
               <p className="text-[11px] text-slate-500">Tire Code</p>
-              <p className="mt-1 text-lg font-semibold text-slate-800">{raw}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-800">
+                {data.code}
+              </p>
               <p className="mt-2 text-[11px] text-slate-500">Position</p>
               <p className="mt-1 font-medium text-indigo-600">{posLabel}</p>
             </div>
@@ -78,10 +120,12 @@ export default async function TireResult({
             <div className="rounded-xl border border-slate-200 bg-white p-3">
               <p className="text-[11px] text-slate-500">Recommended PSI</p>
               <p className="mt-1 text-3xl font-bold text-emerald-600">
-                {recommended}
+                {data.psi}
               </p>
               <p className="mt-2 text-[11px] text-slate-500">Service Cost</p>
-              <p className="mt-1 font-medium text-slate-800">₱10</p>
+              <p className="mt-1 font-medium text-slate-800">
+                ₱{settings.prices.tireInfo}
+              </p>
             </div>
           </div>
 
@@ -89,7 +133,7 @@ export default async function TireResult({
             <p className="mb-0.5 font-semibold text-indigo-900 text-[13px]">
               Why this PSI?
             </p>
-            <p className="text-[12px] text-indigo-900/80">{why}</p>
+            <p className="text-[12px] text-indigo-900/80">{data.why}</p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -103,20 +147,24 @@ export default async function TireResult({
                 </span>
                 <span>Check DOT Code</span>
               </div>
-              <p className="mt-1 text-center text-[12px] text-slate-500">₱15</p>
+              <p className="mt-1 text-center text-[12px] text-slate-500">
+                ₱{settings.prices.dotCheck}
+              </p>
             </Link>
 
             <Link
               href={`/service/inflation?code=${encodeURIComponent(
-                raw
-              )}&pos=${pos}&psi=${recommended}`}
+                data.code
+              )}&pos=${data.pos}&psi=${data.psi}`}
               className="block rounded-lg bg-slate-900 p-3 text-slate-50 shadow-sm hover:bg-slate-800"
             >
               <div className="flex items-center justify-center gap-2 font-semibold">
                 <span className="material-symbols-rounded">tire_repair</span>
                 <span>Proceed to Tire Inflation</span>
               </div>
-              <p className="mt-1 text-center text-[12px] text-slate-300">₱20</p>
+              <p className="mt-1 text-center text-[12px] text-slate-300">
+                ₱{settings.prices.inflation}
+              </p>
             </Link>
           </div>
         </section>
