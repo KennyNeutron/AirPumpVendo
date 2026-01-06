@@ -70,7 +70,7 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(COIN_PIN), coinPulseISR, FALLING);
 
-  Serial.println("AirPumpVendo Started...");
+  Serial.println("AirPumpVendo Started...2");
 }
 
 void loop() {
@@ -133,24 +133,26 @@ void loop() {
 }
 
 void InflateTire() {
+  int offset=23;
   while (1) {
     digitalWrite(SolenoidPin, 1);
-    delay(600);
-    while (pressurePSI_Int < TargetPressure) {
-      ReadPressureInflate();
-      pressurePSI_Int = (int)(pressurePSI);
+    if (TargetPressure > 20) {
+      while (pressurePSI_Int < (TargetPressure + offset)) {
+        ReadPressureInflate();
+        pressurePSI_Int = (int)(pressurePSI);
+        Serial.println("PRESSURE:" + String((pressurePSI_Int - offset)));
+      }
+    } else {
+      delay(600);
     }
-
     digitalWrite(SolenoidPin, 0);
-    while (pressurePSI_Int > TargetPressure) {
-      ReadPressureInflate();
-      pressurePSI_Int = (int)(pressurePSI);
-    }
+
+    delay(1500);
 
     ReadPressureInflate();
+
     pressurePSI_Int = (int)(pressurePSI);
 
-    Serial.println("PRESSURE:" + String(pressurePSI_Int));
     if (pressurePSI_Int >= TargetPressure) {
       Inflating = false;
       digitalWrite(SolenoidPin, 0);
