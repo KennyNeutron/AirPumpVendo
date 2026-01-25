@@ -2,19 +2,17 @@
 
 ## Description
 
-The Coin-Operated Smart Tire Air Pump Vending Machine is a microcontroller-driven, self-service system that provides a fast, safe, and user-friendly way to inflate vehicle tires. Perfect for public locations like vulcanizing shops, parking lots, terminals, and gas stations, it offers tire code lookup, DOT safety checks, and auto-stop inflation at a target PSI.
+The Coin-Operated Smart Tire Air Pump Vending Machine is a microcontroller-driven, self-service system that provides a fast, safe, and user-friendly way to inflate vehicle tires. Perfect for public locations like vulcanizing shops, parking lots, terminals, and gas stations, it offers tire code lookup, a free DOT safety check, and auto-stop inflation at a target PSI.
 
 ## Services
 
-1. **Tire Code Info**
-   - Input tire code (e.g., P215/65R15) via push-buttons
-   - Displays recommended PSI from internal database
-2. **DOT Code Check**
-   - Input DOT code (e.g., 0718)
-   - Calculates tire age and displays safety status
-3. **Tire Inflation**
-   - Live PSI updates on TFT display
-   - Automatic stop at recommended or user-defined PSI
+1. **Tire Code Info & Inflation**
+   - **Lookup by Code**: Input tire code (e.g., 225/60R16) to get recommended PSI from the internal database.
+   - **Manual Input**: Manually set a custom target PSI if the recommended pressure is already known.
+   - **Inflation**: Automatic stop at the target PSI with live pressure monitoring.
+2. **DOT Code Safety Check (Free Service)**
+   - Input DOT code (e.g., 1021) to determine tire age.
+   - Displays whether the tire is Safe, requires Caution, or needs Immediate Replacement.
 
 ## System Architecture
 
@@ -23,23 +21,17 @@ The Coin-Operated Smart Tire Air Pump Vending Machine is a microcontroller-drive
 ## Hardware Requirements
 
 - Microcontroller (e.g., Arduino Uno or similar)
-- TFT display module
-- Push-button inputs (up, down, select)
-- Pressure sensor
-- Coin acceptor mechanism
-- Coin validation circuitry
-- Solid State Relay (SSR) & Automatic Transfer Switch (ATS)
-- Power supply and enclosure
-- Wiring and connectors
+- TFT display module (7" 800×480 optimized)
+- Pressure sensor for live PSI monitoring
+- Coin acceptor mechanism (Pulse-based)
+- Solid State Relay (SSR) for compressor control
+- Power supply and industrial-grade enclosure
 
 ## Software Requirements
 
-- Arduino IDE (or PlatformIO)
-- Required Arduino libraries:
-  - TFT display library
-  - Button debouncing library
-  - Coin acceptor library (if applicable)
-  - Sensor driver for pressure sensor
+- **Electron & Next.js**: Modern touch-optimized UI for the operator interface.
+- **Arduino Firmware**: C++ logic for sensors, relays, and serial communication.
+- **Serial Communication**: Robust protocol between the UI and the controller.
 
 ## Installation & Setup
 
@@ -48,41 +40,43 @@ The Coin-Operated Smart Tire Air Pump Vending Machine is a microcontroller-drive
    git clone https://github.com/yourusername/smart-tire-air-pump.git
    cd smart-tire-air-pump
    ```
-2. **Open in Arduino IDE**
-   - Load the `.ino` file located in `src/`
-3. **Configure hardware settings**
-   - Adjust pin definitions in `config.h`
-   - Update pricing, PSI database, and service enable flags
-4. **Upload firmware**
-   - Connect your microcontroller via USB
-   - Upload the sketch
+2. **Desktop UI Setup** (Inside `Code/Desktop/AirPumpVendo`)
+   ```bash
+   npm install
+   npm run dev
+   ```
+3. **Firmware Setup** (Inside `Code/Arduino/AirPumpVendo_Device`)
+   - Open `AirPumpVendo_Device.ino` in Arduino IDE.
+   - Configure pin definitions and upload to your microcontroller.
 
 ## Usage
 
-1. **Power on** the machine.
-2. **Select service** using the push-buttons.
-3. **Insert coins**; total cost is displayed on the screen.
-4. **Follow on-screen prompts** to input codes or start inflation.
-5. **Connect the hose** and press “Start.”
-6. **Machine auto-stops** once the target PSI is reached.
-7. **Remove hose** and collect change (if any).
+1. **Select Service**: Choose from the main menu (Tire Service or DOT Check).
+2. **Setup Inflation**:
+   - For Tire Service: Enter your tire code for a recommendation OR enter PSI manually.
+   - For DOT Check: This service is free; follow prompts to check tire safety.
+3. **Payment**: Insert coins as required for paid services. The single total cost is displayed on screen.
+4. **Inflation**:
+   - Connect the hose to the tire valve.
+   - Press “Start Inflation.”
+   - The machine auto-stops once the target PSI is reached.
+5. **Completion**: Remove the hose and return to the home screen.
 
 ## Admin Control Panel
 
-- Access via secure login on the TFT interface
-- **Manage tire codes** and recommended PSI values
-- **Modify service pricing**
-- **Enable/disable features** (e.g., DOT check)
-- **View audit logs** of usage and payments
-- **Enter maintenance mode** to clear data
+- Secure access via password-protected login.
+- **Manage Tire Codes**: Add/remove recommended PSI mappings.
+- **DOT Database**: Update the list of known DOT codes and safety thresholds.
+- **Pricing Management**: Set standard rates for info and inflation services.
+- **Analytics**: View weekly revenue reports and service usage statistics.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -m "Add YourFeature"`)
-4. Push to branch (`git push origin feature/YourFeature`)
-5. Open a Pull Request
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/YourFeature`).
+3. Commit your changes (`git commit -m "Add YourFeature"`).
+4. Push to branch (`git push origin feature/YourFeature`).
+5. Open a Pull Request.
 
 ## License
 
