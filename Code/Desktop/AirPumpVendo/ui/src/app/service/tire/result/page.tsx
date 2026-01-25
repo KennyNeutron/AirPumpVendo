@@ -46,7 +46,7 @@ export default function TireResult() {
         addTransaction(
           "TIRE_INFO",
           settings.prices.tireInfo,
-          `${code} (${pos})`
+          `${code} (${pos})`,
         );
       }
       return;
@@ -55,7 +55,7 @@ export default function TireResult() {
     // 2. Try dynamic settings
     const normalized = normalizeCode(code);
     const custom = settings.tireCodes.find(
-      (c) => normalizeCode(c.code) === normalized
+      (c) => normalizeCode(c.code) === normalized,
     );
 
     if (custom) {
@@ -71,7 +71,7 @@ export default function TireResult() {
         addTransaction(
           "TIRE_INFO",
           settings.prices.tireInfo,
-          `${custom.code} (${pos})`
+          `${custom.code} (${pos})`,
         );
       }
       return;
@@ -175,13 +175,15 @@ export default function TireResult() {
                 <span>Check DOT Code</span>
               </div>
               <p className="mt-1 text-center text-[12px] text-slate-500">
-                ₱{settings.prices.dotCheck}
+                {settings.prices.dotCheck === 0
+                  ? "Free"
+                  : `₱${settings.prices.dotCheck}`}
               </p>
             </Link>
 
             <Link
               href={`/service/inflation?code=${encodeURIComponent(
-                data.code
+                data.code,
               )}&pos=${data.pos}&psi=${data.psi}`}
               className="block rounded-lg bg-slate-900 p-3 text-slate-50 shadow-sm hover:bg-slate-800"
             >

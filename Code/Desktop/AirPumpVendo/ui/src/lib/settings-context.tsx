@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: Settings = {
   password: "Admin123",
   prices: {
     tireInfo: 10,
-    dotCheck: 15,
+    dotCheck: 0,
     inflation: 20,
   },
   services: {
@@ -67,7 +67,7 @@ interface SettingsContextType {
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
@@ -113,7 +113,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       ((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) /
         86400000 +
         1) /
-        7
+        7,
     );
 
     let age = currentYear - year + (currentWeek - week) / 52;

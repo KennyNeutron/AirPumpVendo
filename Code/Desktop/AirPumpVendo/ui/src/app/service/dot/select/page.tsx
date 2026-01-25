@@ -46,7 +46,10 @@ export default function DotSelect() {
             </p>
             <div className="mt-1.5">
               <span className="text-[12px] font-medium text-slate-700">
-                Service Cost: ₱{settings.prices.dotCheck}
+                Service Cost:{" "}
+                {settings.prices.dotCheck === 0
+                  ? "Free"
+                  : `₱${settings.prices.dotCheck}`}
               </span>
               <p className="text-[10px] text-slate-400">
                 Select your DOT code to check tire safety

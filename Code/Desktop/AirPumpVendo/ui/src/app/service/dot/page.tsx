@@ -11,15 +11,15 @@ import { useSettings } from "@/lib/settings-context";
 const choosePortFromList = (ports: any[]): string | null => {
   if (!Array.isArray(ports) || ports.length === 0) return null;
   const linuxUSB = ports.find(
-    (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB")
+    (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB"),
   );
   if (linuxUSB) return linuxUSB.path;
   const linuxACM = ports.find(
-    (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM")
+    (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM"),
   );
   if (linuxACM) return linuxACM.path;
   const winCOM = ports.find(
-    (p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path)
+    (p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path),
   );
   if (winCOM) return winCOM.path;
   return typeof ports[0].path === "string" ? ports[0].path : null;
@@ -75,6 +75,10 @@ export default function DotService() {
   };
 
   useEffect(() => {
+    if (TOTAL === 0) {
+      setCompleted(true);
+      return;
+    }
     if (sentOnceRef.current) return;
     sentOnceRef.current = true;
     void sendPayment();
@@ -91,7 +95,7 @@ export default function DotService() {
       const upper = raw.toUpperCase();
 
       if (upper.includes("PAYMENT COMPLETE")) {
-        setCompleted(true);
+        if (TOTAL > 0) setCompleted(true);
         return;
       }
 
@@ -108,7 +112,9 @@ export default function DotService() {
         unsubscribe?.();
       } catch {}
     };
-  }, []);
+  }, [TOTAL]);
+
+  const isFree = TOTAL === 0;
 
   return (
     <main className="h-dvh overflow-hidden p-3">
@@ -158,31 +164,36 @@ export default function DotService() {
               <ul className="space-y-1 text-[13px]">
                 <li className="flex justify-between">
                   <span>DOT Code Safety Check</span>
-                  <span className="font-medium">₱{TOTAL}</span>
+                  <span className="font-medium">
+                    {isFree ? "Free" : `₱${TOTAL}`}
+                  </span>
                 </li>
               </ul>
               <div className="mt-2 border-t border-slate-200 pt-1.5 flex justify-between text-[13px] font-semibold">
                 <span>Total</span>
-                <span>₱{TOTAL}</span>
+                <span>{isFree ? "Free" : `₱${TOTAL}`}</span>
               </div>
             </div>
 
-            <p className="text-center text-[15px] font-semibold text-slate-800">
-              Total: ₱{TOTAL}
-              <span className="mx-2 text-slate-400">•</span>
-              Inserted:{" "}
-              <span
-                className={
-                  inserted >= TOTAL ? "text-green-700" : "text-amber-700"
-                }
-              >
-                ₱{inserted}
-              </span>
-            </p>
+            {!isFree && (
+              <p className="text-center text-[15px] font-semibold text-slate-800">
+                Total: ₱{TOTAL}
+                <span className="mx-2 text-slate-400">•</span>
+                Inserted:{" "}
+                <span
+                  className={
+                    inserted >= TOTAL ? "text-green-700" : "text-amber-700"
+                  }
+                >
+                  ₱{inserted}
+                </span>
+              </p>
+            )}
 
             <p className="text-[12px] text-slate-500">
-              Insert coins or bills at the payment module. Once payment is
-              complete, you can proceed to enter your tire&apos;s DOT code.
+              {isFree
+                ? "This service is currently free. Press Continue to proceed."
+                : "Insert coins or bills at the payment module. Once payment is complete, you can proceed to enter your tire's DOT code."}
             </p>
           </div>
 
@@ -193,9 +204,9 @@ export default function DotService() {
             >
               <span className="inline-flex h-full items-center justify-center gap-2">
                 <span className="material-symbols-rounded text-[18px]">
-                  check_circle
+                  {isFree ? "arrow_forward" : "check_circle"}
                 </span>
-                Payment Complete - Continue
+                {isFree ? "Continue" : "Payment Complete - Continue"}
               </span>
             </Link>
           ) : (

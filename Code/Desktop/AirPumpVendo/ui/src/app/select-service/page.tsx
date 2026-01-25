@@ -55,7 +55,7 @@ export default function SelectService() {
               Get recommended PSI and optional inflation
             </p>
             <p className="mt-1 text-center text-[12px] text-slate-500">
-              ₱{prices.tireInfo} (Info) + ₱{prices.inflation} (Inflation)
+              ₱{prices.tireInfo + prices.inflation}
             </p>
           </Link>
 
@@ -77,8 +77,8 @@ export default function SelectService() {
               <p className="mx-auto max-w-[36ch] text-center text-[12px] text-slate-600">
                 Check tire manufacture date and safety
               </p>
-              <p className="mt-1 text-center text-[12px] text-slate-500">
-                ₱{prices.dotCheck}
+              <p className="mt-1 text-center text-[12px] text-slate-500 font-bold text-green-600">
+                {prices.dotCheck === 0 ? "Free" : `₱${prices.dotCheck}`}
               </p>
             </Link>
           )}
