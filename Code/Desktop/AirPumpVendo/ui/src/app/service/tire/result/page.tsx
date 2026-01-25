@@ -174,10 +174,8 @@ export default function TireResult() {
                 </span>
                 <span>Check DOT Code</span>
               </div>
-              <p className="mt-1 text-center text-[12px] text-slate-500">
-                {settings.prices.dotCheck === 0
-                  ? "Free"
-                  : `₱${settings.prices.dotCheck}`}
+              <p className="mt-1 text-center text-[12px] font-bold text-green-600">
+                Free
               </p>
             </Link>
 

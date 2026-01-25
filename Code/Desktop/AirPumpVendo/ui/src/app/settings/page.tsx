@@ -326,11 +326,6 @@ function PricingTab() {
           onChange={(v) => handleChange("tireInfo", v)}
         />
         <InputGroup
-          label="DOT Code Check"
-          value={settings.prices.dotCheck}
-          onChange={(v) => handleChange("dotCheck", v)}
-        />
-        <InputGroup
           label="Tire Inflation"
           value={settings.prices.inflation}
           onChange={(v) => handleChange("inflation", v)}

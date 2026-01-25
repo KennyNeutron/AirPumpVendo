@@ -15,7 +15,6 @@ export interface Settings {
   password?: string;
   prices: {
     tireInfo: number;
-    dotCheck: number;
     inflation: number;
   };
   services: {
@@ -29,7 +28,6 @@ const DEFAULT_SETTINGS: Settings = {
   password: "Admin123",
   prices: {
     tireInfo: 10,
-    dotCheck: 0,
     inflation: 20,
   },
   services: {

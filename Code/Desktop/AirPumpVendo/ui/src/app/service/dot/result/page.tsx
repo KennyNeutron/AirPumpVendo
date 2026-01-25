@@ -23,9 +23,9 @@ export default function DotResult() {
   useEffect(() => {
     if (!recorded.current) {
       recorded.current = true;
-      addTransaction("DOT_CHECK", settings.prices.dotCheck, `DOT ${code}`);
+      addTransaction("DOT_CHECK", 0, `DOT ${code}`);
     }
-  }, [code, settings.prices.dotCheck, addTransaction]);
+  }, [code, addTransaction]);
 
   // Theme configuration based on status
   let theme = {
