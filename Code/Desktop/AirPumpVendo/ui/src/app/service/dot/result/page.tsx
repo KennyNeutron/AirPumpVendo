@@ -37,25 +37,29 @@ export default function DotResult() {
     titleColor: "text-emerald-800",
     badgeBg: "bg-emerald-100",
     badgeText: "text-emerald-700",
-    statusText: "SAFE TO USE",
+    statusText: year > 2026 ? "NOT YET MANUFACTURED" : "SAFE TO USE",
     message:
-      "Your tire is within the safe age range. Continue regular maintenance and monitor for signs of wear.",
+      year > 2026
+        ? "This DOT code indicates a manufacturing date in the future. Please double-check the code on your tire sidewall."
+        : "Your tire is within the safe age range. Continue regular maintenance and monitor for signs of wear.",
     messageColor: "text-emerald-800",
   };
 
   if (status === "CAUTION") {
     theme = {
       icon: "warning",
-      iconColor: "text-amber-500", // Slightly darker for visibility
-      headerColor: "text-emerald-800", // Keep main header consistent
+      iconColor: "text-amber-500",
+      headerColor: "text-emerald-800",
       cardBg: "bg-amber-50",
       cardBorder: "border-amber-200",
       titleColor: "text-amber-800",
       badgeBg: "bg-amber-100",
       badgeText: "text-amber-800",
-      statusText: "USE WITH CAUTION",
+      statusText: "CHECK CAREFULLY",
       message:
-        "Your tire is aging and approaching the recommended replacement time. Consider replacement soon and monitor closely for signs of wear, cracking, or damage.",
+        year === 2020
+          ? "This tire is 6 years old. It is generally safe but should be checked carefully and considered for replacement soon."
+          : "Your tire is aging and approaching the recommended replacement time. Consider replacement soon and monitor closely for signs of wear.",
       messageColor: "text-amber-800",
     };
   } else if (status === "REPLACE") {

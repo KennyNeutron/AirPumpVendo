@@ -4,16 +4,40 @@
 "use client";
 
 import Link from "next/link";
-import { useSettings } from "@/lib/settings-context";
-import { DotInfo } from "@/lib/dot-utils";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DotSelect() {
-  const { settings } = useSettings();
-  const data = settings.dotCodes;
+  const [code, setCode] = useState("");
+  const router = useRouter();
+
+  const handleKeyPress = (val: string) => {
+    if (code.length < 4) {
+      setCode((prev) => prev + val);
+    }
+  };
+
+  const handleBackspace = () => {
+    setCode((prev) => prev.slice(0, -1));
+  };
+
+  const handleClear = () => {
+    setCode("");
+  };
+
+  useEffect(() => {
+    if (code.length === 4) {
+      // Small delay for visual feedback before redirecting
+      const timer = setTimeout(() => {
+        router.push(`/service/dot/result?code=${code}`);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [code, router]);
 
   return (
     <main className="h-dvh overflow-hidden bg-slate-50 p-2">
-      <div className="mx-auto grid h-full w-full max-w-[800px] grid-rows-[auto_1fr] gap-2">
+      <div className="mx-auto grid h-full w-full max-w-[500px] grid-rows-[auto_1fr] gap-2">
         {/* Back Button */}
         <div>
           <Link
@@ -28,7 +52,7 @@ export default function DotSelect() {
         </div>
 
         {/* Main Card */}
-        <section className="grid grid-rows-[auto_1fr_auto] gap-2 rounded-2xl bg-white p-3 shadow-lg overflow-hidden">
+        <section className="grid grid-rows-[auto_1fr_auto] gap-2 rounded-2xl bg-white p-4 shadow-lg overflow-hidden">
           {/* Header */}
           <div className="text-center">
             <div className="mb-1 grid place-items-center">
@@ -42,26 +66,59 @@ export default function DotSelect() {
               DOT Code Safety Check
             </h1>
             <p className="text-[11px] text-slate-500">
-              Check your tire&apos;s manufacturing date and safety status
+              Enter your tire&apos;s 4-digit manufacturing code
             </p>
-            <div className="mt-1.5">
-              <p className="text-[12px] text-slate-500">
-                Select your DOT code to check tire safety
-              </p>
-            </div>
           </div>
 
-          {/* Grid Content */}
-          <div className="overflow-y-auto pr-1">
-            <div className="grid grid-cols-3 gap-2">
-              {data.map((item) => (
-                <Link
-                  key={item.code}
-                  href={`/service/dot/result?code=${item.code}`}
+          {/* Keypad and Input */}
+          <div className="flex flex-col items-center justify-center gap-6 py-2">
+            {/* Display */}
+            <div className="flex gap-3">
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`flex h-16 w-12 items-center justify-center rounded-xl border-2 text-[28px] font-bold transition-all ${
+                    code.length > i
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-inner"
+                      : "border-slate-200 bg-white text-slate-300"
+                  }`}
                 >
-                  <Card item={item} />
-                </Link>
+                  {code[i] || "•"}
+                </div>
               ))}
+            </div>
+
+            {/* Keypad Grid */}
+            <div className="grid w-full grid-cols-3 gap-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => handleKeyPress(num.toString())}
+                  className="flex h-16 items-center justify-center rounded-2xl bg-slate-50 text-[24px] font-bold text-slate-700 shadow-sm transition active:scale-95 active:bg-slate-100 hover:bg-slate-100/50"
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={handleClear}
+                className="flex h-16 items-center justify-center rounded-2xl bg-red-50 text-[14px] font-bold text-red-600 shadow-sm transition active:scale-95 active:bg-red-100"
+              >
+                CLEAR
+              </button>
+              <button
+                onClick={() => handleKeyPress("0")}
+                className="flex h-16 items-center justify-center rounded-2xl bg-slate-50 text-[24px] font-bold text-slate-700 shadow-sm transition active:scale-95 active:bg-slate-100 hover:bg-slate-100/50"
+              >
+                0
+              </button>
+              <button
+                onClick={handleBackspace}
+                className="flex h-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm transition active:scale-95 active:bg-slate-200 overflow-hidden"
+              >
+                <span className="material-symbols-rounded text-[28px]">
+                  backspace
+                </span>
+              </button>
             </div>
           </div>
 
@@ -79,51 +136,5 @@ export default function DotSelect() {
         </section>
       </div>
     </main>
-  );
-}
-
-function Card({ item }: { item: DotInfo }) {
-  const { status, code, week, year, ageYears } = item;
-
-  let borderColor = "border-emerald-200";
-  let bgColor = "bg-emerald-50";
-  let iconColor = "text-emerald-600";
-  let icon = "check_circle";
-  let badgeClass = "bg-emerald-100 text-emerald-700";
-
-  if (status === "CAUTION") {
-    borderColor = "border-amber-200";
-    bgColor = "bg-amber-50";
-    iconColor = "text-amber-600";
-    icon = "warning";
-    badgeClass = "bg-amber-100 text-amber-700";
-  } else if (status === "REPLACE") {
-    borderColor = "border-red-200";
-    bgColor = "bg-red-50";
-    iconColor = "text-red-600";
-    icon = "error";
-    badgeClass = "bg-red-100 text-red-700";
-  }
-
-  return (
-    <div
-      className={`flex flex-col items-center justify-center rounded-xl border ${borderColor} ${bgColor} p-2 shadow-sm transition hover:shadow-md`}
-    >
-      <div className={`mb-1 flex items-center gap-1.5 ${iconColor}`}>
-        <span className="material-symbols-rounded text-[18px]">{icon}</span>
-        <span className="text-[16px] font-bold text-slate-700">{code}</span>
-      </div>
-      <p className="text-[10px] text-slate-500">
-        Manufactured: Week {week}, {year}
-      </p>
-      <p className="my-1 text-[14px] font-semibold text-slate-800">
-        {ageYears} years old
-      </p>
-      <span
-        className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${badgeClass}`}
-      >
-        {status}
-      </span>
-    </div>
   );
 }
