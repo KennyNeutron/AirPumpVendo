@@ -36,7 +36,7 @@ export default function InflationScreen() {
     // Check custom settings
     const norm = normalizeCode(code);
     const custom = settings.tireCodes.find(
-      (c) => normalizeCode(c.code) === norm
+      (c) => normalizeCode(c.code) === norm,
     );
     if (custom) return custom.psi;
 
@@ -49,19 +49,22 @@ export default function InflationScreen() {
   const [currentPressure, setCurrentPressure] = useState<number | null>(null);
   const [completed, setCompleted] = useState<boolean>(false);
 
-  const total = settings.prices.tireInfo + settings.prices.inflation;
+  const isManual = code === "Manual";
+  const total = isManual
+    ? settings.prices.inflation
+    : settings.prices.tireInfo + settings.prices.inflation;
   const posLabel = pos === "front" ? "Front" : "Rear";
 
   const label =
     step === "payment"
       ? "Payment Inserted - Continue"
       : step === "connect"
-      ? "Hose Connected - Continue"
-      : completed
-      ? "Back to Home"
-      : inflationStarted
-      ? "Inflating..."
-      : "Start Inflation";
+        ? "Hose Connected - Continue"
+        : completed
+          ? "Back to Home"
+          : inflationStarted
+            ? "Inflating..."
+            : "Start Inflation";
 
   // Guard so PAYMENT send runs exactly once per mount
   const sentOnceRef = useRef(false);
@@ -70,15 +73,15 @@ export default function InflationScreen() {
   const choosePortFromList = (ports: any[]): string | null => {
     if (!Array.isArray(ports) || ports.length === 0) return null;
     const linuxUSB = ports.find(
-      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB")
+      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyUSB"),
     );
     if (linuxUSB) return linuxUSB.path;
     const linuxACM = ports.find(
-      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM")
+      (p) => typeof p.path === "string" && p.path.startsWith("/dev/ttyACM"),
     );
     if (linuxACM) return linuxACM.path;
     const winCOM = ports.find(
-      (p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path)
+      (p) => typeof p.path === "string" && /^COM\d+$/i.test(p.path),
     );
     if (winCOM) return winCOM.path;
     return typeof ports[0].path === "string" ? ports[0].path : null;
@@ -166,7 +169,7 @@ export default function InflationScreen() {
       // Explicit completion keywords from Arduino (optional)
       if (
         /(INFLATION\s*COMPLETE|INFLATE\s*COMPLETE|TARGET\s*REACHED|DONE)/i.test(
-          raw
+          raw,
         )
       ) {
         setCompleted(true);
@@ -201,7 +204,7 @@ export default function InflationScreen() {
         addTransaction(
           "INFLATION",
           settings.prices.inflation,
-          `Target: ${targetPsi} PSI`
+          `Target: ${targetPsi} PSI`,
         );
       }
 
@@ -234,7 +237,7 @@ export default function InflationScreen() {
   }, [inflationStarted, currentPressure, targetPsi]);
 
   const backHref = `/service/tire/result?code=${encodeURIComponent(
-    code
+    code,
   )}&pos=${pos}&psi=${targetPsi}`;
 
   return (
