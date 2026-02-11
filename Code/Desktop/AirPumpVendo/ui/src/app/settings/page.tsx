@@ -178,81 +178,114 @@ function TabButton({
 
 function AnalyticsTab() {
   const { settings } = useSettings();
-  const { getWeeklyRevenue, resetTransactions } = useTransactions();
+  const {
+    getWeeklyRevenue,
+    getMonthlyRevenue,
+    getDailyRevenue,
+    exportTransactions,
+    resetTransactions,
+  } = useTransactions();
   const weeklyRevenue = getWeeklyRevenue();
+  const monthlyRevenue = getMonthlyRevenue();
+  const weeklyData = getDailyRevenue("week");
+  const monthlyData = getDailyRevenue("month");
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-4 print:space-y-2">
+      {/* Revenue Section */}
+      <section className="grid gap-4 md:grid-cols-2 print:grid-cols-2">
         {/* Weekly Revenue */}
-        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-[14px] font-medium text-slate-700">
-            Weekly Revenue
-          </h3>
-          <div className="text-center">
-            <div className="text-[32px] font-bold text-slate-900">
-              ₱{weeklyRevenue.toLocaleString()}
-            </div>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-              This Week
-            </span>
-          </div>
-          <button
-            onClick={resetTransactions}
-            className="mt-6 w-full rounded-lg border border-slate-200 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50"
-          >
-            Reset Weekly Total
-          </button>
-        </div>
+        <RevenueCard
+          title="Weekly Revenue"
+          amount={weeklyRevenue}
+          theme="indigo"
+          icon="calendar_view_week"
+          data={weeklyData}
+          subtitle="This Week"
+        />
 
+        {/* Monthly Revenue */}
+        <RevenueCard
+          title="Monthly Revenue"
+          amount={monthlyRevenue}
+          theme="emerald"
+          icon="calendar_month"
+          data={monthlyData}
+          subtitle="This Month"
+        />
+      </section>
+
+      <div className="grid gap-4 md:grid-cols-[2fr_1fr] print:block">
         {/* Service Statistics */}
-        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm print:border-none print:shadow-none">
           <h3 className="mb-4 text-[14px] font-medium text-slate-700">
             Service Statistics
           </h3>
-          <ul className="space-y-3 text-[13px]">
-            <li className="flex justify-between">
-              <span className="text-slate-500">Total Tire Codes:</span>
-              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-3 text-[13px]">
+            <li className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+              <span className="text-slate-500">Total Tire Codes</span>
+              <span className="font-semibold text-slate-800">
                 {settings.tireCodes.length}
               </span>
             </li>
-            <li className="flex justify-between">
-              <span className="text-slate-500">Total DOT Codes:</span>
-              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+            <li className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+              <span className="text-slate-500">Total DOT Codes</span>
+              <span className="font-semibold text-slate-800">
                 {settings.dotCodes.length}
               </span>
             </li>
-            <li className="flex justify-between items-center">
-              <span className="text-slate-500">DOT Check Status:</span>
-              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+            <li className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+              <span className="text-slate-500">DOT Check</span>
+              <span
+                className={`font-semibold ${
+                  settings.services.dotCheckEnabled
+                    ? "text-emerald-600"
+                    : "text-slate-400"
+                }`}
+              >
                 {settings.services.dotCheckEnabled ? "Enabled" : "Disabled"}
               </span>
             </li>
-            <li className="flex justify-between">
-              <span className="text-slate-500">Services Available:</span>
-              <span className="font-semibold rounded bg-slate-900 px-1.5 py-0.5 text-[11px] text-white">
+            <li className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+              <span className="text-slate-500">Active Services</span>
+              <span className="font-semibold text-slate-800">
                 {settings.services.dotCheckEnabled ? 3 : 2}
               </span>
             </li>
           </ul>
         </div>
+
+        {/* Data Management - Hide on print */}
+        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm flex flex-col justify-center gap-3 print:hidden">
+          <h3 className="text-[14px] font-medium text-slate-700">
+            Data Management
+          </h3>
+          <button
+            onClick={resetTransactions}
+            className="w-full rounded-lg border border-red-200 bg-red-50 py-2.5 text-[12px] font-medium text-red-700 hover:bg-red-100 transition flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-rounded text-[16px]">
+              delete_forever
+            </span>
+            Reset All Data
+          </button>
+          <p className="text-[10px] text-slate-400 text-center leading-tight">
+            Clears all transaction history (Weekly & Monthly metrics will
+            reset).
+          </p>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div>
+      {/* Quick Actions - Hide on print */}
+      <div className="print:hidden">
         <h3 className="mb-3 text-[14px] font-medium text-slate-700">
           Quick Actions
         </h3>
         <div className="grid gap-3 md:grid-cols-3">
           <ActionButton
             icon="database"
-            label="Export Data"
-            onClick={() => {
-              // Placeholder for export
-              console.log("Export requested");
-              alert("Data export feature coming soon.");
-            }}
+            label="Export Data (CSV)"
+            onClick={exportTransactions}
           />
           <Link href="/settings" onClick={() => {}} className="contents">
             <button className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50">
@@ -265,13 +298,86 @@ function AnalyticsTab() {
             </button>
           </Link>
           <ActionButton
-            icon="attach_money"
-            label="Financial Report"
-            onClick={() => {
-              alert("Financial report feature coming soon.");
-            }}
+            icon="print"
+            label="Print Report"
+            onClick={() => window.print()}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RevenueCard({
+  title,
+  amount,
+  theme,
+  icon,
+  data,
+  subtitle,
+}: {
+  title: string;
+  amount: number;
+  theme: "indigo" | "emerald";
+  icon: string;
+  data: { label: string; amount: number }[];
+  subtitle: string;
+}) {
+  const maxAmount = Math.max(...data.map((d) => d.amount), 1); // Avoid div by zero
+  const bgClass = theme === "indigo" ? "bg-indigo-50" : "bg-emerald-50";
+  const textClass = theme === "indigo" ? "text-indigo-900" : "text-emerald-900";
+  const barClass = theme === "indigo" ? "bg-indigo-400" : "bg-emerald-400";
+  const pillClass =
+    theme === "indigo"
+      ? "bg-indigo-50 text-indigo-700"
+      : "bg-emerald-50 text-emerald-700";
+
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm relative overflow-hidden flex flex-col h-full print:border-slate-300">
+      <div
+        className={`absolute right-0 top-0 h-16 w-16 -translate-y-4 translate-x-4 rounded-full opacity-50 ${bgClass} print:hidden`}
+      />
+      <div className="relative z-10 mb-4">
+        <h3 className="mb-1 text-[14px] font-medium text-slate-700">{title}</h3>
+        <div className="flex items-baseline gap-2">
+          <div className={`text-[28px] font-bold ${textClass}`}>
+            ₱{amount.toLocaleString()}
+          </div>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${pillClass} print:bg-slate-100 print:text-slate-900`}
+          >
+            <span className="material-symbols-rounded text-[12px]">{icon}</span>
+            {subtitle}
+          </span>
+        </div>
+      </div>
+
+      {/* Mini Bar Chart */}
+      <div className="relative z-10 flex items-end justify-between gap-1 h-16 mt-auto">
+        {data.map((d, i) => (
+          <div key={i} className="flex flex-col items-center flex-1 group">
+            <div className="relative w-full flex justify-center items-end h-full">
+              {/* Tooltip */}
+              <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap z-20 pointer-events-none print:hidden">
+                {d.label}: ₱{d.amount}
+              </div>
+              <div
+                className={`w-full max-w-[12px] rounded-t-sm transition-all duration-300 ${barClass} ${
+                  d.amount === 0
+                    ? "h-0.5 opacity-30"
+                    : "opacity-80 hover:opacity-100"
+                } print:bg-slate-800`}
+                style={{ height: `${(d.amount / maxAmount) * 100}%` }}
+              />
+            </div>
+            {/* Show only some labels if too many data points (e.g. monthly) */}
+            {(data.length <= 7 || i % 5 === 0) && (
+              <span className="text-[9px] text-slate-400 mt-1 truncate max-w-full print:text-slate-600">
+                {d.label.split(" ")[0]}
+              </span>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
