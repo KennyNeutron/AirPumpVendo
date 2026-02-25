@@ -1,0 +1,64 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="29.5.3">
+  <diagram name="Page-1" id="vNjSO7taaFuJn7i82ZJ6">
+    <mxGraphModel dx="2066" dy="1137" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t9-noBZEKnPuHU9Fedey-4" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.55;exitY=0.95;exitDx=0;exitDy=0;exitPerimeter=0;startArrow=classic;startFill=1;" target="t9-noBZEKnPuHU9Fedey-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-1" parent="1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" value="DATABASE&lt;div&gt;(SQLite)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="120" x="310" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-5" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;startArrow=classic;startFill=1;" target="t9-noBZEKnPuHU9Fedey-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DESKTOP APP" vertex="1">
+          <mxGeometry height="60" width="120" x="345" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-14" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="t9-noBZEKnPuHU9Fedey-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-28" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;startArrow=classic;startFill=1;" target="t9-noBZEKnPuHU9Fedey-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Raspberry Pi" vertex="1">
+          <mxGeometry height="50" width="120" x="345" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="eE8nfASyuIORjaf0bnM1-2" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="t9-noBZEKnPuHU9Fedey-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Arduino" vertex="1">
+          <mxGeometry height="50" width="120" x="345" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-25" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="t9-noBZEKnPuHU9Fedey-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Pressure Sensor" vertex="1">
+          <mxGeometry height="50" width="120" x="535" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="eE8nfASyuIORjaf0bnM1-1" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="t9-noBZEKnPuHU9Fedey-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="COMPRESSOR" vertex="1">
+          <mxGeometry height="50" width="120" x="345" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-22" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="t9-noBZEKnPuHU9Fedey-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SOLID STATE RELAY" vertex="1">
+          <mxGeometry height="50" width="120" x="345" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-26" edge="1" parent="1" source="t9-noBZEKnPuHU9Fedey-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="t9-noBZEKnPuHU9Fedey-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-12" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" value="TIRE" vertex="1">
+          <mxGeometry height="80" width="80" x="365" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="t9-noBZEKnPuHU9Fedey-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="TFT LCD" vertex="1">
+          <mxGeometry height="50" width="120" x="590" y="410" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
